@@ -1512,19 +1512,27 @@ async function gracefulShutdown(options = {}) {
 
   if (openCodeProcess) {
     console.log('Stopping OpenCode process...');
-    openCodeProcess.kill('SIGTERM');
 
-    await new Promise((resolve) => {
-      const timeout = setTimeout(() => {
-        openCodeProcess.kill('SIGKILL');
-        resolve();
-      }, SHUTDOWN_TIMEOUT);
+    // Check if already exited to avoid hanging on an event that already fired
+    if (openCodeProcess.exitCode !== null || openCodeProcess.signalCode !== null) {
+      console.log('OpenCode process already exited');
+    } else {
+      openCodeProcess.kill('SIGTERM');
 
-      openCodeProcess.on('exit', () => {
-        clearTimeout(timeout);
-        resolve();
+      await new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+          if (openCodeProcess && openCodeProcess.exitCode === null && openCodeProcess.signalCode === null) {
+            openCodeProcess.kill('SIGKILL');
+          }
+          resolve();
+        }, SHUTDOWN_TIMEOUT);
+
+        openCodeProcess.once('exit', () => {
+          clearTimeout(timeout);
+          resolve();
+        });
       });
-    });
+    }
   }
 
   if (server) {
@@ -2705,7 +2713,11 @@ async function main(options = {}) {
       : os.homedir();
 
     try {
-      const resolvedPath = path.resolve(rawPath);
+      // Expand ~ to home directory before resolving
+      const expandedPath = rawPath.startsWith('~')
+        ? path.join(os.homedir(), rawPath.slice(1))
+        : rawPath;
+      const resolvedPath = path.resolve(expandedPath);
 
       const stats = await fsPromises.stat(resolvedPath);
       if (!stats.isDirectory()) {
