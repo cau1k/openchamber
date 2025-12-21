@@ -1,53 +1,42 @@
 /**
- * Terminal routes using bun-pty
+ * Terminal routes using tmux for persistence
  * 
- * Optimizations:
- * - Batched output (debounced every 16ms for 60fps)
- * - Filtered terminal query responses that cause visual noise
+ * Sessions persist across:
+ * - Page refresh
+ * - Server restart
+ * - Reconnections
+ * 
+ * Naming: openchamber-<id>-<workspace-hash>
  */
 
 import { Hono } from 'hono'
-import { spawn } from 'bun-pty'
+import { $ } from 'bun'
+import { createHash } from 'crypto'
 
-type PtyProcess = ReturnType<typeof spawn>
-
-interface TerminalSession {
+interface TmuxSession {
   id: string
-  process: PtyProcess
-  buffer: string[]
-  pendingData: string
-  flushTimer: ReturnType<typeof setTimeout> | null
+  tmuxName: string
+  workspace: string
   subscribers: Set<WritableStreamDefaultWriter>
+  streamProc: ReturnType<typeof Bun.spawn> | null
   createdAt: number
 }
 
-const sessions = new Map<string, TerminalSession>()
+// Active streaming connections (not the tmux sessions themselves)
+const activeStreams = new Map<string, TmuxSession>()
 
-// Batch interval in ms (16ms = ~60fps)
+// Batch interval for output (16ms = ~60fps)
 const BATCH_INTERVAL_MS = 16
 
-// Regex to filter out terminal query responses that cause visual noise
-// These are responses to DA1, DA2, XTVERSION, and color queries
-const TERMINAL_NOISE_PATTERNS = [
-  /\x1b\[\?[\d;]*c/g,           // DA1 response (Primary Device Attributes)
-  /\x1b\[>[\d;]*c/g,            // DA2 response (Secondary Device Attributes)
-  /\x1b\]10;[^\x07\x1b]*[\x07\x1b\\]/g,  // OSC 10 (foreground color response)
-  /\x1b\]11;[^\x07\x1b]*[\x07\x1b\\]/g,  // OSC 11 (background color response)
-  /\x1b\]12;[^\x07\x1b]*[\x07\x1b\\]/g,  // OSC 12 (cursor color response)
-  /\x1bP>[^\x1b]*\x1b\\/g,      // DCS responses
-  /\x1b\[[\d;]*n/g,             // DSR responses
-]
-
-function filterTerminalNoise(data: string): string {
-  let filtered = data
-  for (const pattern of TERMINAL_NOISE_PATTERNS) {
-    filtered = filtered.replace(pattern, '')
-  }
-  return filtered
+// Hash workspace path to create short, filesystem-safe identifier
+function hashWorkspace(workspace: string): string {
+  return createHash('md5').update(workspace).digest('hex').slice(0, 8)
 }
 
-function generateId(): string {
-  return `term_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+function generateSessionName(workspace: string): string {
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+  const hash = hashWorkspace(workspace)
+  return `openchamber-${id}-${hash}`
 }
 
 function getDefaultShell(): string {
@@ -57,24 +46,77 @@ function getDefaultShell(): string {
   return Bun.env.SHELL || '/bin/bash'
 }
 
-function flushSession(session: TerminalSession): void {
-  if (session.pendingData.length === 0) return
-  
-  const data = session.pendingData
-  session.pendingData = ''
-  session.flushTimer = null
-  
-  // Keep last 1000 chunks in buffer for replay
-  session.buffer.push(data)
-  if (session.buffer.length > 1000) {
-    session.buffer.shift()
+// Check if tmux session exists
+async function tmuxSessionExists(name: string): Promise<boolean> {
+  try {
+    await $`tmux has-session -t ${name}`.quiet()
+    return true
+  } catch {
+    return false
   }
+}
 
-  // Send batched data to all subscribers
-  for (const writer of session.subscribers) {
-    writer.write(`data: ${JSON.stringify({ data })}\n\n`).catch(() => {
-      session.subscribers.delete(writer)
-    })
+// List all openchamber tmux sessions for a workspace
+async function listWorkspaceSessions(workspace: string): Promise<string[]> {
+  const hash = hashWorkspace(workspace)
+  
+  try {
+    const output = await $`tmux list-sessions -F "#{session_name}"`.text()
+    return output
+      .split('\n')
+      .filter(Boolean)
+      .filter(name => name.startsWith('openchamber-') && name.endsWith(`-${hash}`))
+  } catch {
+    return []
+  }
+}
+
+// Create tmux session
+async function createTmuxSession(name: string, workspace: string, cols: number, rows: number): Promise<void> {
+  const shell = getDefaultShell()
+  
+  // Create detached tmux session with specified size
+  await $`tmux new-session -d -s ${name} -x ${cols} -y ${rows} -c ${workspace} ${shell}`.quiet()
+}
+
+// Kill tmux session
+async function killTmuxSession(name: string): Promise<void> {
+  try {
+    await $`tmux kill-session -t ${name}`.quiet()
+  } catch {
+    // Session might already be dead
+  }
+}
+
+// Resize tmux session
+async function resizeTmuxSession(name: string, cols: number, rows: number): Promise<void> {
+  try {
+    // Resize the window/pane
+    await $`tmux resize-window -t ${name} -x ${cols} -y ${rows}`.quiet()
+  } catch {
+    // Fallback: try resizing pane directly
+    try {
+      await $`tmux resize-pane -t ${name} -x ${cols} -y ${rows}`.quiet()
+    } catch {
+      // Ignore resize errors
+    }
+  }
+}
+
+// Send input to tmux session
+async function sendToTmux(name: string, data: string): Promise<void> {
+  // Use send-keys with literal flag for raw input
+  // For special keys, we need to handle them
+  await $`tmux send-keys -t ${name} -l ${data}`.quiet()
+}
+
+// Capture tmux pane content (for initial buffer on reconnect)
+async function captureTmuxPane(name: string, lines: number = 500): Promise<string> {
+  try {
+    const output = await $`tmux capture-pane -t ${name} -p -S -${lines}`.text()
+    return output
+  } catch {
+    return ''
   }
 }
 
@@ -84,101 +126,170 @@ export function createTerminalRoutes() {
   // Create new terminal session
   terminal.post('/create', async (c) => {
     const { cwd, cols = 80, rows = 24 } = await c.req.json()
-    const workdir = cwd || process.cwd()
+    const workspace = cwd || process.cwd()
 
     try {
-      const id = generateId()
-      const shell = getDefaultShell()
+      const tmuxName = generateSessionName(workspace)
       
-      const ptyProcess = spawn(shell, [], {
-        name: 'xterm-256color',
-        cols,
-        rows,
-        cwd: workdir,
-        env: {
-          ...Bun.env,
-          TERM: 'xterm-256color',
-          COLORTERM: 'truecolor',
-        } as Record<string, string>,
+      // Create the tmux session
+      await createTmuxSession(tmuxName, workspace, cols, rows)
+      
+      console.log(`[terminal] Created tmux session: ${tmuxName} in ${workspace}`)
+
+      return c.json({ 
+        id: tmuxName, 
+        tmuxName,
+        shell: getDefaultShell(), 
+        cwd: workspace,
+        persistent: true
       })
-
-      const session: TerminalSession = {
-        id,
-        process: ptyProcess,
-        buffer: [],
-        pendingData: '',
-        flushTimer: null,
-        subscribers: new Set(),
-        createdAt: Date.now(),
-      }
-
-      // Batched output - collect data and flush every 16ms
-      ptyProcess.onData((data: string) => {
-        // Filter out terminal query responses that cause visual noise
-        const filtered = filterTerminalNoise(data)
-        if (filtered.length === 0) return
-        
-        session.pendingData += filtered
-        
-        // Debounce: only flush after BATCH_INTERVAL_MS of no new data
-        if (session.flushTimer) {
-          clearTimeout(session.flushTimer)
-        }
-        session.flushTimer = setTimeout(() => flushSession(session), BATCH_INTERVAL_MS)
-      })
-
-      ptyProcess.onExit(({ exitCode }: { exitCode: number }) => {
-        // Flush any remaining data
-        if (session.flushTimer) {
-          clearTimeout(session.flushTimer)
-          session.flushTimer = null
-        }
-        if (session.pendingData.length > 0) {
-          flushSession(session)
-        }
-        
-        // Notify subscribers of exit
-        for (const writer of session.subscribers) {
-          writer.write(`data: ${JSON.stringify({ exit: exitCode })}\n\n`).catch(() => {})
-          writer.close().catch(() => {})
-        }
-        sessions.delete(id)
-      })
-
-      sessions.set(id, session)
-
-      return c.json({ id, shell, cwd: workdir })
     } catch (error) {
       console.error('[terminal/create]', error)
       return c.json({ error: 'Failed to create terminal' }, 500)
     }
   })
 
+  // List sessions for workspace
+  terminal.get('/list', async (c) => {
+    const workspace = c.req.query('workspace') || process.cwd()
+    
+    try {
+      const sessions = await listWorkspaceSessions(workspace)
+      return c.json({ sessions, workspace })
+    } catch (error) {
+      console.error('[terminal/list]', error)
+      return c.json({ error: 'Failed to list sessions' }, 500)
+    }
+  })
+
+  // Reconnect to existing session (or verify it exists)
+  terminal.get('/reconnect/:id', async (c) => {
+    const tmuxName = c.req.param('id')
+    
+    try {
+      const exists = await tmuxSessionExists(tmuxName)
+      if (!exists) {
+        return c.json({ error: 'Session not found', exists: false }, 404)
+      }
+      
+      // Capture current pane content for replay
+      const buffer = await captureTmuxPane(tmuxName)
+      
+      return c.json({ 
+        id: tmuxName, 
+        exists: true, 
+        buffer,
+        persistent: true
+      })
+    } catch (error) {
+      console.error('[terminal/reconnect]', error)
+      return c.json({ error: 'Failed to reconnect' }, 500)
+    }
+  })
+
   // Stream terminal output (SSE)
   terminal.get('/stream/:id', async (c) => {
-    const id = c.req.param('id')
-    const session = sessions.get(id)
-
-    if (!session) {
+    const tmuxName = c.req.param('id')
+    
+    // Check session exists
+    if (!await tmuxSessionExists(tmuxName)) {
       return c.json({ error: 'Session not found' }, 404)
     }
 
     const { readable, writable } = new TransformStream()
     const writer = writable.getWriter()
 
-    // Add to subscribers
+    // Get or create stream tracker
+    let session = activeStreams.get(tmuxName)
+    if (!session) {
+      session = {
+        id: tmuxName,
+        tmuxName,
+        workspace: '',
+        subscribers: new Set(),
+        streamProc: null,
+        createdAt: Date.now(),
+      }
+      activeStreams.set(tmuxName, session)
+    }
+    
     session.subscribers.add(writer)
 
-    // Send buffered output
-    if (session.buffer.length > 0) {
-      const buffered = session.buffer.join('')
-      await writer.write(`data: ${JSON.stringify({ data: buffered })}\n\n`)
+    // Send initial buffer (captured pane content)
+    const initialBuffer = await captureTmuxPane(tmuxName)
+    if (initialBuffer) {
+      await writer.write(`data: ${JSON.stringify({ data: initialBuffer })}\n\n`)
     }
 
-    // Clean up on close
+    // Start streaming if not already
+    if (!session.streamProc) {
+      // Use tmux pipe-pane to stream output
+      // We spawn a process that reads from tmux
+      const streamProc = Bun.spawn(['tmux', 'pipe-pane', '-t', tmuxName, '-O', 'cat'], {
+        stdout: 'pipe',
+        stderr: 'pipe',
+      })
+      
+      session.streamProc = streamProc
+
+      // Buffer for batching
+      let pendingData = ''
+      let flushTimer: ReturnType<typeof setTimeout> | null = null
+
+      const flush = () => {
+        if (pendingData.length === 0) return
+        const data = pendingData
+        pendingData = ''
+        flushTimer = null
+
+        for (const w of session!.subscribers) {
+          w.write(`data: ${JSON.stringify({ data })}\n\n`).catch(() => {
+            session!.subscribers.delete(w)
+          })
+        }
+      }
+
+      // Read stdout
+      const reader = (streamProc.stdout as ReadableStream<Uint8Array>).getReader()
+      const decoder = new TextDecoder()
+
+      const readLoop = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            pendingData += decoder.decode(value)
+            
+            if (flushTimer) clearTimeout(flushTimer)
+            flushTimer = setTimeout(flush, BATCH_INTERVAL_MS)
+          }
+        } catch {
+          // Stream ended
+        }
+
+        // Cleanup
+        if (flushTimer) {
+          clearTimeout(flushTimer)
+          flush()
+        }
+        session!.streamProc = null
+      }
+
+      readLoop()
+    }
+
+    // Cleanup on disconnect
     c.req.raw.signal.addEventListener('abort', () => {
-      session.subscribers.delete(writer)
+      session!.subscribers.delete(writer)
       writer.close().catch(() => {})
+      
+      // Stop streaming if no more subscribers
+      if (session!.subscribers.size === 0 && session!.streamProc) {
+        session!.streamProc.kill()
+        session!.streamProc = null
+        activeStreams.delete(tmuxName)
+      }
     })
 
     return new Response(readable, {
@@ -192,16 +303,15 @@ export function createTerminalRoutes() {
 
   // Write to terminal
   terminal.post('/write/:id', async (c) => {
-    const id = c.req.param('id')
-    const session = sessions.get(id)
-
-    if (!session) {
+    const tmuxName = c.req.param('id')
+    
+    if (!await tmuxSessionExists(tmuxName)) {
       return c.json({ error: 'Session not found' }, 404)
     }
 
     const { data } = await c.req.json()
     if (data) {
-      session.process.write(data)
+      await sendToTmux(tmuxName, data)
     }
 
     return c.json({ success: true })
@@ -209,16 +319,15 @@ export function createTerminalRoutes() {
 
   // Resize terminal
   terminal.post('/resize/:id', async (c) => {
-    const id = c.req.param('id')
-    const session = sessions.get(id)
-
-    if (!session) {
+    const tmuxName = c.req.param('id')
+    
+    if (!await tmuxSessionExists(tmuxName)) {
       return c.json({ error: 'Session not found' }, 404)
     }
 
     const { cols, rows } = await c.req.json()
     if (cols && rows) {
-      session.process.resize(cols, rows)
+      await resizeTmuxSession(tmuxName, cols, rows)
     }
 
     return c.json({ success: true })
@@ -226,28 +335,49 @@ export function createTerminalRoutes() {
 
   // Kill terminal
   terminal.delete('/:id', async (c) => {
-    const id = c.req.param('id')
-    const session = sessions.get(id)
-
-    if (!session) {
-      return c.json({ error: 'Session not found' }, 404)
+    const tmuxName = c.req.param('id')
+    
+    // Clean up streaming
+    const session = activeStreams.get(tmuxName)
+    if (session) {
+      if (session.streamProc) {
+        session.streamProc.kill()
+      }
+      for (const writer of session.subscribers) {
+        writer.close().catch(() => {})
+      }
+      activeStreams.delete(tmuxName)
     }
 
-    session.process.kill()
-    sessions.delete(id)
+    // Kill tmux session
+    await killTmuxSession(tmuxName)
+    
+    console.log(`[terminal] Killed tmux session: ${tmuxName}`)
 
     return c.json({ success: true })
   })
 
-  // List active sessions
-  terminal.get('/sessions', (c) => {
-    const list = Array.from(sessions.entries()).map(([id, session]) => ({
-      id,
-      createdAt: session.createdAt,
-      subscriberCount: session.subscribers.size,
-    }))
+  // List all active sessions (for debugging/admin)
+  terminal.get('/sessions', async (c) => {
+    try {
+      const output = await $`tmux list-sessions -F "#{session_name}:#{session_created}"`.text()
+      const sessions = output
+        .split('\n')
+        .filter(Boolean)
+        .filter(line => line.startsWith('openchamber-'))
+        .map(line => {
+          const [name, created] = line.split(':')
+          return { 
+            name, 
+            createdAt: parseInt(created) * 1000,
+            hasActiveStream: activeStreams.has(name)
+          }
+        })
 
-    return c.json({ sessions: list })
+      return c.json({ sessions })
+    } catch {
+      return c.json({ sessions: [] })
+    }
   })
 
   return terminal
