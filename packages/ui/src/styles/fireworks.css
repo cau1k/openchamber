@@ -31,7 +31,7 @@
   position: absolute;
   width: var(--particle-size, 6px);
   height: var(--particle-size, 6px);
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--firework-color, var(--status-success));
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
   opacity: 0;
@@ -48,7 +48,7 @@
   width: 2px;
   height: 2px;
   background: currentColor;
-  border-radius: inherit;
+  border-radius: 0;
   transform: translate(-50%, -50%);
   opacity: 0.5;
 }

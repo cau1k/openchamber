@@ -361,7 +361,7 @@ export const ServerFilePicker: React.FC<ServerFilePickerProps> = ({
     const row = (
       <div
         className={cn(
-          "flex w-full items-center justify-start gap-1 px-2 py-1.5 rounded hover:bg-muted cursor-pointer typography-ui-label text-foreground text-left",
+          "flex w-full items-center justify-start gap-1 px-2 py-1.5 rounded-none hover:bg-muted cursor-pointer typography-ui-label text-foreground text-left",
           file.type === 'file' && selectedFiles.has(file.path) && "bg-primary/10"
         )}
         style={{ paddingLeft: `${level * 12}px` }}
@@ -380,7 +380,7 @@ export const ServerFilePicker: React.FC<ServerFilePickerProps> = ({
           </span>
         </div>
         {file.type === 'file' && selectedFiles.has(file.path) && (
-          <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+          <div className="h-1.5 w-1.5 rounded-none-none bg-primary" />
         )}
       </div>
     );
@@ -412,7 +412,7 @@ export const ServerFilePicker: React.FC<ServerFilePickerProps> = ({
         <button
           type="button"
         className={cn(
-            'flex w-full items-center justify-start gap-1 px-2 py-1.5 rounded cursor-pointer typography-ui-label text-foreground text-left',
+            'flex w-full items-center justify-start gap-1 px-2 py-1.5 rounded-none cursor-pointer typography-ui-label text-foreground text-left',
             !isDirectory && selectedFiles.has(file.path) && 'bg-primary/10'
           )}
           style={{ paddingLeft: `${level * 12}px` }}
@@ -431,7 +431,7 @@ export const ServerFilePicker: React.FC<ServerFilePickerProps> = ({
             {file.name}
           </span>
           {!isDirectory && selectedFiles.has(file.path) && (
-            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+            <div className="h-1.5 w-1.5 rounded-none-none bg-primary" />
           )}
         </button>
 
@@ -494,7 +494,7 @@ export const ServerFilePicker: React.FC<ServerFilePickerProps> = ({
                 e.stopPropagation();
                 setSearchQuery('');
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-muted rounded"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-muted rounded-none"
             >
               <RiCloseLine className="h-3 w-3"/>
             </button>

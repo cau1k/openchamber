@@ -113,7 +113,7 @@ export const AppearanceSettings: React.FC = () => {
                             step="5"
                             value={fontSize}
                             onChange={(e) => setFontSize(Number(e.target.value))}
-                            className="flex-1 min-w-0 h-2 bg-muted rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-0"
+                            className="flex-1 min-w-0 h-2 bg-muted rounded-none-none appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-none-none [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-none-none [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-0"
                         />
                         <NumberInput
                             value={fontSize}
@@ -155,11 +155,11 @@ export const AppearanceSettings: React.FC = () => {
                             step="5"
                             value={padding}
                             onChange={(e) => setPadding(Number(e.target.value))}
-                            className="flex-1 min-w-0 h-3 bg-muted rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-0"
+                            className="flex-1 min-w-0 h-3 bg-muted rounded-none-none appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-none-none [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-none-none [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-0"
                             aria-label="Spacing percentage"
                         />
 
-                        <span className="typography-ui-label font-medium text-foreground tabular-nums rounded-md border border-border bg-background px-2 py-1.5 min-w-[3.75rem] text-center">
+                        <span className="typography-ui-label font-medium text-foreground tabular-nums rounded-none-none border border-border bg-background px-2 py-1.5 min-w-[3.75rem] text-center">
                             {padding}
                         </span>
 
@@ -184,7 +184,7 @@ export const AppearanceSettings: React.FC = () => {
                             step="5"
                             value={padding}
                             onChange={(e) => setPadding(Number(e.target.value))}
-                            className="flex-1 min-w-0 h-2 bg-muted rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-0"
+                            className="flex-1 min-w-0 h-2 bg-muted rounded-none-none appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-none-none [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-none-none [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-0"
                         />
                         <NumberInput
                             value={padding}

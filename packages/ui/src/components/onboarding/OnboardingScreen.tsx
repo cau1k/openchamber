@@ -121,7 +121,7 @@ export function OnboardingScreen({ onCliAvailable }: OnboardingScreenProps) {
         </div>
 
         <div className="flex justify-center">
-          <div className="bg-background/60 backdrop-blur-sm border border-border rounded-lg px-5 py-3 font-mono text-sm w-fit">
+          <div className="bg-background/60 backdrop-blur-sm border border-border rounded-none-none px-5 py-3 font-mono text-sm w-fit">
             {copied ? (
               <div className="flex items-center justify-center gap-2" style={{ color: 'var(--status-success)' }}>
                 <RiCheckLine className="h-4 w-4" />

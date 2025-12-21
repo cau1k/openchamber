@@ -71,11 +71,11 @@ export const MemoryDebugPanel: React.FC<MemoryDebugPanelProps> = ({ onClose }) =
       <div className="space-y-3">
         {}
         <div className="grid grid-cols-2 gap-2 typography-meta">
-          <div className="bg-muted/50 rounded p-2">
+          <div className="bg-muted/50 rounded-none p-2">
             <div className="text-muted-foreground">Total Messages</div>
             <div className="typography-markdown font-semibold">{totalMessages}</div>
           </div>
-          <div className="bg-muted/50 rounded p-2">
+          <div className="bg-muted/50 rounded-none p-2">
             <div className="text-muted-foreground">Cached Sessions</div>
             <div className="typography-markdown font-semibold">{cachedSessionCount} / {MEMORY_LIMITS.MAX_SESSIONS}</div>
           </div>
@@ -83,13 +83,13 @@ export const MemoryDebugPanel: React.FC<MemoryDebugPanelProps> = ({ onClose }) =
 
         {desktopInfo && (
           <div className="grid grid-cols-2 gap-2 typography-meta border-t pt-2">
-            <div className="bg-muted/50 rounded p-2">
+            <div className="bg-muted/50 rounded-none p-2">
               <div className="text-muted-foreground">Desktop Host</div>
               <div className="typography-markdown font-mono text-xs">
                 {desktopInfo.host ?? 'unknown'}
               </div>
             </div>
-            <div className="bg-muted/50 rounded p-2">
+            <div className="bg-muted/50 rounded-none p-2">
               <div className="text-muted-foreground">OpenCode Port</div>
               <div className="typography-markdown font-semibold">
                 {desktopInfo.openCodePort ?? 'n/a'}
@@ -124,7 +124,7 @@ export const MemoryDebugPanel: React.FC<MemoryDebugPanelProps> = ({ onClose }) =
             {sessionStats.map(stat => (
               <div
                 key={stat.id}
-                className={`typography-meta p-1.5 rounded flex items-center justify-between ${
+                className={`typography-meta p-1.5 rounded-none flex items-center justify-between ${
                   stat.isCurrent ? 'bg-primary/10' : 'bg-muted/30'
                 }`}
               >

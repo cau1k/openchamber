@@ -39,7 +39,7 @@ export const AboutSettings: React.FC = () => {
             <button
               onClick={() => setUpdateDialogOpen(true)}
               className={cn(
-                'flex items-center gap-2 px-3 py-1.5 rounded-md',
+                'flex items-center gap-2 px-3 py-1.5 rounded-none-none',
                 'text-sm font-medium',
                 'bg-primary text-primary-foreground',
                 'hover:bg-primary/90',

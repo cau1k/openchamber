@@ -125,7 +125,7 @@ const NumberInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
     return (
       <div
         className={cn(
-          "flex h-8 items-stretch overflow-hidden rounded-lg border border-border bg-background",
+          "flex h-8 items-stretch overflow-hidden rounded-none-none border border-border bg-background",
           "focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]",
           disabled && "opacity-50",
           containerClassName

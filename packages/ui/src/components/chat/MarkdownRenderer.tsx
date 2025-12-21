@@ -208,13 +208,13 @@ const TableCopyButton: React.FC<{ tableRef: React.RefObject<HTMLDivElement | nul
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setShowMenu(!showMenu)}
-        className="p-1 rounded hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors"
+        className="p-1 rounded-none hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors"
         title="Copy table"
       >
         {copied ? <RiCheckLine className="size-3.5" /> : <RiFileCopyLine className="size-3.5" />}
       </button>
       {showMenu && (
-        <div className="absolute top-full right-0 z-10 mt-1 min-w-[100px] overflow-hidden rounded-md border border-border bg-background shadow-lg">
+        <div className="absolute top-full right-0 z-10 mt-1 min-w-[100px] overflow-hidden rounded-none-none border border-border bg-background shadow-lg">
           <button
             className="w-full px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted/40"
             onClick={() => handleCopy('csv')}
@@ -268,13 +268,13 @@ const TableDownloadButton: React.FC<{ tableRef: React.RefObject<HTMLDivElement |
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setShowMenu(!showMenu)}
-        className="p-1 rounded hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors"
+        className="p-1 rounded-none hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors"
         title="Download table"
       >
         <RiDownloadLine className="size-3.5" />
       </button>
       {showMenu && (
-        <div className="absolute top-full right-0 z-10 mt-1 min-w-[100px] overflow-hidden rounded-md border border-border bg-background shadow-lg">
+        <div className="absolute top-full right-0 z-10 mt-1 min-w-[100px] overflow-hidden rounded-none-none border border-border bg-background shadow-lg">
           <button
             className="w-full px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted/40"
             onClick={() => handleDownload('csv')}
@@ -395,7 +395,7 @@ const CodeBlockWrapper: React.FC<CodeBlockWrapperProps> = ({ children, className
       <div className="absolute top-1 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={handleCopy}
-          className="p-1 rounded hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors"
+          className="p-1 rounded-none hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-colors"
           title="Copy"
         >
           {copied ? <RiCheckLine className="size-3.5" /> : <RiFileCopyLine className="size-3.5" />}

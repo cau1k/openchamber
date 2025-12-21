@@ -169,7 +169,7 @@ export const BranchSelector: React.FC<BranchSelectorProps> = ({
                   <span>Create new branch...</span>
                 </CommandItem>
               ) : (
-                <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg">
+                <div className="flex items-center gap-2 px-2 py-1.5 rounded-none-none">
                   <input
                     ref={createInputRef}
                     placeholder="New branch name"

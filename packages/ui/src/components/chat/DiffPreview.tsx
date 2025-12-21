@@ -88,7 +88,7 @@ export const WritePreview: React.FC<WritePreviewProps> = ({ content, syntaxTheme
 
     return (
         <div className="w-full min-w-0">
-            <div className="bg-muted/20 px-2 py-1 typography-meta font-medium text-muted-foreground border border-border/10 rounded-lg mb-1">
+            <div className="bg-muted/20 px-2 py-1 typography-meta font-medium text-muted-foreground border border-border/10 rounded-none-none mb-1">
                 {`${displayPath} (${headerLineLabel})`}
             </div>
             <div className="space-y-0">

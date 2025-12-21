@@ -499,7 +499,7 @@ export const Header: React.FC = () => {
               <RiSettings3Line className="h-5 w-5" />
               {updateAvailable && (
                 <span
-                  className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary"
+                  className="absolute top-1.5 right-1.5 h-2 w-2 rounded-none-none bg-primary"
                   aria-label="Update available"
                 />
               )}

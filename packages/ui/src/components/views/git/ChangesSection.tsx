@@ -31,7 +31,7 @@ export const ChangesSection: React.FC<ChangesSectionProps> = ({
   const totalCount = changeEntries.length;
 
   return (
-    <section className="flex flex-col rounded-xl border border-border/60 bg-background/70">
+    <section className="flex flex-col rounded-none-none border border-border/60 bg-background/70">
       <header className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border/40">
         <h3 className="typography-ui-header font-semibold text-foreground">Changes</h3>
         <div className="flex items-center gap-2">

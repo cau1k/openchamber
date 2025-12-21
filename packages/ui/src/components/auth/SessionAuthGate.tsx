@@ -56,7 +56,7 @@ const AuthShell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 const LoadingScreen: React.FC<{ message?: string }> = ({ message = 'Preparing workspace…' }) => (
   <AuthShell>
-    <div className="w-full max-w-sm rounded-3xl border border-border/40 bg-card/90 px-6 py-5 text-center shadow-none backdrop-blur">
+    <div className="w-full max-w-sm rounded-none-3xl border border-border/40 bg-card/90 px-6 py-5 text-center shadow-none backdrop-blur">
       <p className="typography-ui-label text-muted-foreground">{message}</p>
     </div>
   </AuthShell>

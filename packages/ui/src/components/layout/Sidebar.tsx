@@ -221,7 +221,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isMobile, children }) 
                         <button
                             onClick={() => setSettingsDialogOpen(true)}
                             className={cn(
-                                'flex items-center gap-2 rounded-md px-3 py-2',
+                                'flex items-center gap-2 rounded-none-none px-3 py-2',
                                 'text-sm font-semibold text-muted-foreground',
                                 'hover:text-foreground',
                                 'transition-colors'
@@ -234,7 +234,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isMobile, children }) 
                             <button
                                 onClick={() => setUpdateDialogOpen(true)}
                                 className={cn(
-                                    'flex items-center gap-1.5 rounded-md px-2.5 py-1.5',
+                                    'flex items-center gap-1.5 rounded-none-none px-2.5 py-1.5',
                                     'text-xs font-medium',
                                     'bg-primary/10 text-primary',
                                     'hover:bg-primary/20',
@@ -250,7 +250,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, isMobile, children }) 
                                     <button
                                         onClick={() => setAboutDialogOpen(true)}
                                         className={cn(
-                                            'flex items-center justify-center rounded-md p-1.5',
+                                            'flex items-center justify-center rounded-none-none p-1.5',
                                             'text-muted-foreground',
                                             'hover:text-foreground hover:bg-muted/50',
                                             'transition-colors'

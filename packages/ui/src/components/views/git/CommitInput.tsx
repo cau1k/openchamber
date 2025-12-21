@@ -40,7 +40,7 @@ export const CommitInput: React.FC<CommitInputProps> = ({
       rows={1}
       disabled={disabled}
       className={cn(
-        'rounded-lg bg-background/80 resize-none overflow-y-auto',
+        'rounded-none-none bg-background/80 resize-none overflow-y-auto',
         disabled && 'opacity-50'
       )}
       style={{ minHeight: MIN_HEIGHT, maxHeight: MAX_HEIGHT }}

@@ -1012,7 +1012,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings, scrollToBo
                 ref={dropZoneRef}
                 className={cn(
                     "chat-column relative overflow-visible",
-                    isDragging && "ring-2 ring-primary ring-offset-2 rounded-xl"
+                    isDragging && "ring-2 ring-primary ring-offset-2 rounded-none-none"
                 )}
 
                 onDragOver={handleDragOver}
@@ -1020,7 +1020,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings, scrollToBo
                 onDrop={handleDrop}
             >
                 {isDragging && (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-xl">
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-none-none">
                         <div className="text-center">
                             <div className="inline-flex justify-center">
                                 <button
@@ -1040,7 +1040,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings, scrollToBo
                 <AttachedFilesList />
                 <div
                     className={cn(
-                        "rounded-xl border border-border/80 bg-input/10 dark:bg-input/30",
+                        "rounded-none-none border border-border/80 bg-input/10 dark:bg-input/30",
                         "flex flex-col relative overflow-visible"
                     )}
                     style={chatInputWrapperStyle}
@@ -1084,7 +1084,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings, scrollToBo
                             disabled={!currentSessionId}
 
                         className={cn(
-                            'min-h-[52px] resize-none border-0 px-3 shadow-none rounded-t-xl rounded-b-none appearance-none focus:shadow-none focus-visible:shadow-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-transparent hover:border-transparent bg-transparent',
+                            'min-h-[52px] resize-none border-0 px-3 shadow-none rounded-none-t-xl rounded-none-b-none appearance-none focus:shadow-none focus-visible:shadow-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-transparent hover:border-transparent bg-transparent',
                             isMobile ? "py-2.5" : "pt-4 pb-2",
                             "focus-visible:outline-none focus-visible:ring-0"
                         )}
@@ -1097,7 +1097,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings, scrollToBo
                     />
                     <div
                         className={cn(
-                            'rounded-b-xl bg-transparent',
+                            'rounded-none-b-xl bg-transparent',
                             footerPaddingClass,
                             isMobile ? 'flex items-center gap-x-1.5' : cn('flex items-center justify-between', footerGapClass)
                         )}

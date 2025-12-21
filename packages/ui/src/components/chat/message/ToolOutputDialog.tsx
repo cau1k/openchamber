@@ -104,7 +104,7 @@ const ToolOutputDialog: React.FC<ToolOutputDialogProps> = ({ popup, onOpenChange
                         )}
                     </div>
                 </div>
-                <div className="flex-1 min-h-0 rounded-xl border border-border/30 bg-muted/10 overflow-hidden">
+                <div className="flex-1 min-h-0 rounded-none-none border border-border/30 bg-muted/10 overflow-hidden">
                     <div className="tool-output-surface h-full max-h-[75vh] overflow-y-auto px-3 pr-4">
                         {popup.metadata?.input && typeof popup.metadata.input === 'object' &&
                             Object.keys(popup.metadata.input).length > 0 &&
@@ -127,7 +127,7 @@ const ToolOutputDialog: React.FC<ToolOutputDialogProps> = ({ popup, onOpenChange
                                                 : 'Input:'}
                                     </div>
                                     {meta.tool === 'bash' && getInputValue('command') ? (
-                                        <div className="tool-input-surface bg-transparent rounded-xl border border-border/20 mx-3">
+                                        <div className="tool-input-surface bg-transparent rounded-none-none border border-border/20 mx-3">
                                             <SyntaxHighlighter
                                                 style={syntaxTheme}
                                                 language="bash"
@@ -141,7 +141,7 @@ const ToolOutputDialog: React.FC<ToolOutputDialogProps> = ({ popup, onOpenChange
                                         </div>
                                     ) : meta.tool === 'task' && getInputValue('prompt') ? (
                                         <div
-                                            className="tool-input-surface bg-transparent rounded-xl border border-border/20 font-mono whitespace-pre-wrap text-foreground/90 mx-3"
+                                            className="tool-input-surface bg-transparent rounded-none-none border border-border/20 font-mono whitespace-pre-wrap text-foreground/90 mx-3"
                                             style={toolDisplayStyles.getPopupStyles()}
                                         >
                                             {getInputValue('description') ? `Task: ${getInputValue('description')}\n` : ''}
@@ -149,7 +149,7 @@ const ToolOutputDialog: React.FC<ToolOutputDialogProps> = ({ popup, onOpenChange
                                             {`Instructions:\n${getInputValue('prompt')}`}
                                         </div>
                                     ) : meta.tool === 'write' && getInputValue('content') ? (
-                                        <div className="tool-input-surface bg-transparent rounded-xl border border-border/20 mx-3">
+                                        <div className="tool-input-surface bg-transparent rounded-none-none border border-border/20 mx-3">
                                             <SyntaxHighlighter
                                                 style={syntaxTheme}
                                                 language={getLanguageFromExtension(getInputValue('filePath') || getInputValue('file_path') || '') || 'text'}
@@ -163,7 +163,7 @@ const ToolOutputDialog: React.FC<ToolOutputDialogProps> = ({ popup, onOpenChange
                                         </div>
                                     ) : (
                                         <div
-                                            className="tool-input-surface bg-transparent rounded-xl border border-border/20 font-mono whitespace-pre-wrap text-foreground/90 mx-3"
+                                            className="tool-input-surface bg-transparent rounded-none-none border border-border/20 font-mono whitespace-pre-wrap text-foreground/90 mx-3"
                                             style={toolDisplayStyles.getPopupStyles()}
                                         >
                                             {formatInputForDisplay(input, meta.tool as string)}
@@ -381,7 +381,7 @@ const ToolOutputDialog: React.FC<ToolOutputDialogProps> = ({ popup, onOpenChange
                     ) : popup.image ? (
                         <div className="p-4">
                             <div className="flex flex-col items-center gap-3">
-                                <div className="max-h-[70vh] overflow-hidden rounded-2xl border border-border/40 bg-muted/10">
+                                <div className="max-h-[70vh] overflow-hidden rounded-none-2xl border border-border/40 bg-muted/10">
                                     <img
                                         src={popup.image.url}
                                         alt={popup.image.filename || popup.title || 'Image preview'}
@@ -421,7 +421,7 @@ const ToolOutputDialog: React.FC<ToolOutputDialogProps> = ({ popup, onOpenChange
                                 if (tool === 'list') {
                                     return (
                                         renderListOutput(popup.content) || (
-                                            <pre className="typography-markdown bg-muted/30 p-2 rounded-xl border border-border/20 font-mono whitespace-pre-wrap">
+                                            <pre className="typography-markdown bg-muted/30 p-2 rounded-none-none border border-border/20 font-mono whitespace-pre-wrap">
                                                 {popup.content}
                                             </pre>
                                         )
@@ -431,7 +431,7 @@ const ToolOutputDialog: React.FC<ToolOutputDialogProps> = ({ popup, onOpenChange
                                 if (tool === 'grep') {
                                     return (
                                         renderGrepOutput(popup.content, isMobile) || (
-                                            <pre className="typography-code bg-muted/30 p-2 rounded-xl border border-border/20 font-mono whitespace-pre-wrap">
+                                            <pre className="typography-code bg-muted/30 p-2 rounded-none-none border border-border/20 font-mono whitespace-pre-wrap">
                                                 {popup.content}
                                             </pre>
                                         )
@@ -441,7 +441,7 @@ const ToolOutputDialog: React.FC<ToolOutputDialogProps> = ({ popup, onOpenChange
                                 if (tool === 'glob') {
                                     return (
                                         renderGlobOutput(popup.content, isMobile) || (
-                                            <pre className="typography-code bg-muted/30 p-2 rounded-xl border border-border/20 font-mono whitespace-pre-wrap">
+                                            <pre className="typography-code bg-muted/30 p-2 rounded-none-none border border-border/20 font-mono whitespace-pre-wrap">
                                                 {popup.content}
                                             </pre>
                                         )

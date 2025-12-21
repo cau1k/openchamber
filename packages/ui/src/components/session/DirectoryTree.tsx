@@ -618,7 +618,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
               e.stopPropagation();
               toggleExpanded(item);
             }}
-            className="p-0.5 hover:bg-accent rounded"
+            className="p-0.5 hover:bg-accent rounded-none"
           >
             {isExpanded ? (
               <RiArrowDownSLine className="h-3 w-3" />
@@ -644,7 +644,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
             }
           }}
           className={cn(
-            'flex items-center gap-1.5 flex-1 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 rounded',
+            'flex items-center gap-1.5 flex-1 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 rounded-none',
             isInlineVariant ? (isSelected ? 'text-primary' : 'text-foreground') : 'text-foreground'
           )}
         >
@@ -679,7 +679,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
             startCreatingDirectory(item);
           }}
           className={cn(
-            "p-1 hover:bg-accent rounded transition-opacity",
+            "p-1 hover:bg-accent rounded-none transition-opacity",
             alwaysShowActions ? "opacity-70" : "opacity-0 group-hover:opacity-100"
           )}
           title="Create new directory"
@@ -693,7 +693,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
             togglePin(item.path);
           }}
           className={cn(
-            "p-1 hover:bg-accent rounded transition-opacity",
+            "p-1 hover:bg-accent rounded-none transition-opacity",
             alwaysShowActions ? "opacity-70" : "opacity-0 group-hover:opacity-100"
           )}
           title={isPinned ? "Unpin directory" : "Pin directory"}
@@ -712,7 +712,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
         <div key={item.path}>
           <div
             className={cn(
-              'group flex items-center gap-1 rounded px-2 py-1.5 text-left hover:bg-accent/40',
+              'group flex items-center gap-1 rounded-none px-2 py-1.5 text-left hover:bg-accent/40',
               isSelected ? 'text-primary' : 'text-foreground'
             )}
             style={{ paddingLeft: `${level * 12 + 8}px` }}
@@ -753,7 +753,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
                       e.stopPropagation();
                       createDirectory();
                     }}
-                    className="p-1 hover:bg-accent rounded"
+                    className="p-1 hover:bg-accent rounded-none"
                     title="Create directory"
                   >
                     <RiCheckLine className="h-3 w-3 text-green-600" />
@@ -764,7 +764,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
                       e.stopPropagation();
                       cancelCreatingDirectory();
                     }}
-                    className="p-1 hover:bg-accent rounded"
+                    className="p-1 hover:bg-accent rounded-none"
                     title="Cancel"
                   >
                     <RiCloseLine className="h-3 w-3 text-muted-foreground" />
@@ -796,7 +796,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
                 e.stopPropagation();
                 toggleExpanded(item);
               }}
-              className="p-0.5 hover:bg-accent rounded"
+              className="p-0.5 hover:bg-accent rounded-none"
             >
               {isExpanded ? (
                 <RiArrowDownSLine className="h-3 w-3" />
@@ -842,7 +842,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
                     e.stopPropagation();
                     createDirectory();
                   }}
-                  className="p-1 hover:bg-accent rounded"
+                  className="p-1 hover:bg-accent rounded-none"
                   title="Create directory"
                 >
                   <RiCheckLine className="h-3 w-3 text-green-600" />
@@ -853,7 +853,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
                     e.stopPropagation();
                     cancelCreatingDirectory();
                   }}
-                  className="p-1 hover:bg-accent rounded"
+                  className="p-1 hover:bg-accent rounded-none"
                   title="Cancel"
                 >
                   <RiCloseLine className="h-3 w-3 text-muted-foreground" />
@@ -886,7 +886,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
               }
             }}
             className={cn(
-              'flex flex-1 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 rounded',
+              'flex flex-1 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60 rounded-none',
               isSelected ? 'text-primary' : 'text-foreground'
             )}
           >
@@ -912,7 +912,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
           </button>
           <button
             onClick={() => togglePin(path)}
-            className="p-1 opacity-0 group-hover:opacity-100 hover:bg-accent rounded transition-opacity"
+            className="p-1 opacity-0 group-hover:opacity-100 hover:bg-accent rounded-none transition-opacity"
             title="Unpin directory"
           >
             <RiPushpin2Line className="h-3 w-3 text-primary" />
@@ -949,7 +949,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
             e.preventDefault();
             togglePin(path);
           }}
-          className="p-1 opacity-0 group-hover:opacity-100 hover:bg-accent rounded transition-opacity"
+          className="p-1 opacity-0 group-hover:opacity-100 hover:bg-accent rounded-none transition-opacity"
           title="Unpin directory"
         >
           <RiPushpin2Line className="h-3 w-3 text-primary" />
@@ -971,7 +971,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
               <button
                 type="button"
                 onClick={() => setIsPinnedExpanded(prev => !prev)}
-                className="flex w-full items-center gap-1.5 px-2 py-1.5 typography-meta font-semibold text-muted-foreground hover:bg-accent/30 rounded transition-colors"
+                className="flex w-full items-center gap-1.5 px-2 py-1.5 typography-meta font-semibold text-muted-foreground hover:bg-accent/30 rounded-none transition-colors"
               >
                 {isPinnedExpanded ? (
                   <RiArrowDownSLine className="h-3.5 w-3.5" />
@@ -1017,7 +1017,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
 
   if (variant === 'inline') {
     return (
-      <div className={cn('overflow-hidden rounded-xl border border-border/40 bg-sidebar/70', className)}>
+      <div className={cn('overflow-hidden rounded-none-none border border-border/40 bg-sidebar/70', className)}>
         <ScrollableOverlay outerClassName="max-h-full" className="w-full">
           {directoryContent}
         </ScrollableOverlay>
@@ -1031,7 +1031,7 @@ export const DirectoryTree: React.FC<DirectoryTreeProps> = ({
         <Button
           variant="ghost"
           className={cn(
-            'w-full h-8 px-2.5 justify-between items-center rounded-lg border border-transparent bg-sidebar-accent/40 text-foreground/90 hover:bg-sidebar-accent/60 typography-meta',
+            'w-full h-8 px-2.5 justify-between items-center rounded-none-none border border-transparent bg-sidebar-accent/40 text-foreground/90 hover:bg-sidebar-accent/60 typography-meta',
             triggerClassName
           )}
           aria-label="Select working directory"

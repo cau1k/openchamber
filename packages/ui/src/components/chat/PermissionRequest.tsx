@@ -44,7 +44,7 @@ export const PermissionRequest: React.FC<PermissionRequestProps> = ({
           <span className="typography-ui-label font-medium text-muted-foreground">
             Permission required:
           </span>
-          <code className="ml-2 typography-meta bg-amber-100/50 dark:bg-amber-800/30 px-1.5 py-0.5 rounded font-mono text-amber-800 dark:text-amber-200">
+          <code className="ml-2 typography-meta bg-amber-100/50 dark:bg-amber-800/30 px-1.5 py-0.5 rounded-none font-mono text-amber-800 dark:text-amber-200">
             {command}
           </code>
         </div>
@@ -55,7 +55,7 @@ export const PermissionRequest: React.FC<PermissionRequestProps> = ({
           onClick={() => handleResponse('once')}
           disabled={isResponding}
           className={cn(
-            "flex items-center gap-1 px-2 py-1 typography-meta font-medium rounded border h-6",
+            "flex items-center gap-1 px-2 py-1 typography-meta font-medium rounded-none border h-6",
             "disabled:opacity-50 disabled:cursor-not-allowed"
           )}
           style={{
@@ -77,7 +77,7 @@ export const PermissionRequest: React.FC<PermissionRequestProps> = ({
           onClick={() => handleResponse('always')}
           disabled={isResponding}
           className={cn(
-            "flex items-center gap-1 px-2 py-1 typography-meta font-medium rounded border h-6",
+            "flex items-center gap-1 px-2 py-1 typography-meta font-medium rounded-none border h-6",
             "disabled:opacity-50 disabled:cursor-not-allowed"
           )}
           style={{
@@ -99,7 +99,7 @@ export const PermissionRequest: React.FC<PermissionRequestProps> = ({
           onClick={() => handleResponse('reject')}
           disabled={isResponding}
           className={cn(
-            "flex items-center gap-1 px-2 py-1 typography-meta font-medium rounded border h-6",
+            "flex items-center gap-1 px-2 py-1 typography-meta font-medium rounded-none border h-6",
             "disabled:opacity-50 disabled:cursor-not-allowed"
           )}
           style={{
@@ -119,7 +119,7 @@ export const PermissionRequest: React.FC<PermissionRequestProps> = ({
 
         {isResponding && (
           <div className="ml-2 flex items-center">
-            <div className="animate-spin h-3 w-3 border-2 border-t-transparent rounded-full" style={{ borderColor: 'var(--loading-spinner)' }} />
+            <div className="animate-spin h-3 w-3 border-2 border-t-transparent rounded-none-none" style={{ borderColor: 'var(--loading-spinner)' }} />
           </div>
         )}
       </div>

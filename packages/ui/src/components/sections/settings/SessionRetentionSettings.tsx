@@ -104,7 +104,7 @@ export const SessionRetentionSettings: React.FC = () => {
                 setMobileDraftDays(String(clamped));
               }}
               aria-label="Retention period in days"
-              className="h-8 w-16 rounded-lg border border-border bg-background px-2 text-center typography-ui-label text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/50"
+              className="h-8 w-16 rounded-none-none border border-border bg-background px-2 text-center typography-ui-label text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/50"
             />
           ) : (
             <NumberInput

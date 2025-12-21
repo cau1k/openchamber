@@ -150,7 +150,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose 
               key={id}
               onClick={() => handleTabChange(id)}
               className={cn(
-                'flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium whitespace-nowrap',
+                'flex items-center gap-1 rounded-none-none px-2.5 py-1.5 text-xs font-medium whitespace-nowrap',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               )}

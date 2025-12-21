@@ -652,7 +652,7 @@ export const TerminalView: React.FC = () => {
                 <p>No working directory available for this session.</p>
                 <button
                     onClick={handleRestart}
-                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                    className="rounded-none-none bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
                 >
                     Retry
                 </button>

@@ -122,7 +122,7 @@ export const HelpDialog: React.FC = () => {
                       {(Array.isArray(shortcut.keys) ? shortcut.keys : shortcut.keys.split(' / ')).map((keyCombo: string, i: number) => (
                         <React.Fragment key={`${keyCombo}-${i}`}>
                           {i > 0 && <span className="typography-meta text-muted-foreground mx-1">or</span>}
-                          <kbd className="inline-flex items-center gap-1 px-1.5 py-0.5 typography-meta font-mono bg-muted rounded border border-border/20">
+                          <kbd className="inline-flex items-center gap-1 px-1.5 py-0.5 typography-meta font-mono bg-muted rounded-none border border-border/20">
                             {renderKeyCombo(keyCombo)}
                           </kbd>
                         </React.Fragment>
@@ -135,7 +135,7 @@ export const HelpDialog: React.FC = () => {
           ))}
         </div>
 
-        <div className="mt-4 p-2 bg-muted/30 rounded-xl">
+        <div className="mt-4 p-2 bg-muted/30 rounded-none-none">
           <div className="flex items-start gap-2">
             <RiQuestionLine className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
             <div className="typography-meta text-muted-foreground">

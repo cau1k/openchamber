@@ -168,7 +168,7 @@ export const ChatContainer: React.FC = () => {
                     <div className="chat-column space-y-4">
                             {[1, 2, 3].map((i) => (
                                 <div key={i} className="flex gap-3 p-4">
-                                    <Skeleton className="h-8 w-8 rounded-full" />
+                                    <Skeleton className="h-8 w-8 rounded-none-none" />
                                     <div className="flex-1 space-y-2">
                                         <Skeleton className="h-4 w-24" />
                                         <Skeleton className="h-20 w-full" />
@@ -252,7 +252,7 @@ export const ChatContainer: React.FC = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => scrollToBottom({ force: true })}
-                                className="rounded-full h-8 w-8 p-0 shadow-none bg-background/95 hover:bg-accent"
+                                className="rounded-none-none h-8 w-8 p-0 shadow-none bg-background/95 hover:bg-accent"
                                 aria-label="Scroll to bottom"
                             >
 

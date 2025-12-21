@@ -64,7 +64,7 @@ export const HistoryCommitRow: React.FC<HistoryCommitRowProps> = ({
         )}
       >
         <div
-          className="h-2 w-2 translate-y-2 rounded-full shrink-0"
+          className="h-2 w-2 translate-y-2 rounded-none-none shrink-0"
           style={{ backgroundColor: 'var(--status-success)' }}
           aria-hidden
         />

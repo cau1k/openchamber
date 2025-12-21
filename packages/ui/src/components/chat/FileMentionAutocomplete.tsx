@@ -305,7 +305,7 @@ export const FileMentionAutocomplete = React.forwardRef<FileMentionHandle, FileM
   return (
       <div
         ref={containerRef}
-        className="absolute z-[100] min-w-0 w-full max-w-[520px] max-h-64 bg-background border border-border rounded-xl shadow-none bottom-full mb-2 left-0 flex flex-col"
+        className="absolute z-[100] min-w-0 w-full max-w-[520px] max-h-64 bg-background border border-border rounded-none-none shadow-none bottom-full mb-2 left-0 flex flex-col"
       >
         <ScrollableOverlay outerClassName="flex-1 min-h-0" className="px-0">
         {loading ? (
@@ -325,7 +325,7 @@ export const FileMentionAutocomplete = React.forwardRef<FileMentionHandle, FileM
                 <div
                   ref={(el) => { itemRefs.current[index] = el; }}
                   className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 cursor-pointer typography-ui-label rounded-lg",
+                    "flex items-center gap-2 px-3 py-1.5 cursor-pointer typography-ui-label rounded-none-none",
                     isSelected && "bg-muted"
                   )}
                   onClick={() => handleFileSelect(file)}

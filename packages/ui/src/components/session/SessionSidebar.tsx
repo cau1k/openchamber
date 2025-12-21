@@ -691,7 +691,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
           <div
             key={session.id}
             className={cn(
-              'group relative flex items-center rounded-md px-1.5 py-1',
+              'group relative flex items-center rounded-none-none px-1.5 py-1',
               'dark:bg-accent/80 bg-primary/12',
               depth > 0 && 'pl-[20px]',
             )}
@@ -775,7 +775,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
         <React.Fragment key={session.id}>
           <div
             className={cn(
-              'group relative flex items-center rounded-md px-1.5 py-1',
+              'group relative flex items-center rounded-none-none px-1.5 py-1',
               isActive ? 'dark:bg-accent/80 bg-primary/12' : 'hover:dark:bg-accent/40 hover:bg-primary/6',
               isMissingDirectory ? 'opacity-75' : '',
               depth > 0 && 'pl-[20px]',
@@ -787,7 +787,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
                 disabled={isMissingDirectory}
                 onClick={() => handleSessionSelect(session.id, isMissingDirectory)}
                 className={cn(
-                  'flex min-w-0 flex-1 flex-col gap-0 rounded-sm text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 text-foreground',
+                  'flex min-w-0 flex-1 flex-col gap-0 rounded-none-none text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 text-foreground',
                 )}
               >
                 {}
@@ -819,7 +819,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
                           toggleParent(session.id);
                         }
                       }}
-                      className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 flex-shrink-0 rounded-sm"
+                      className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 flex-shrink-0 rounded-none-none"
                       aria-label={isExpanded ? 'Collapse subsessions' : 'Expand subsessions'}
                     >
                       {isExpanded ? (
@@ -861,7 +861,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
                     <button
                       type="button"
                       className={cn(
-                        'inline-flex h-3.5 w-[18px] items-center justify-center rounded-md text-muted-foreground transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
+                        'inline-flex h-3.5 w-[18px] items-center justify-center rounded-none-none text-muted-foreground transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
                         mobileVariant ? 'opacity-70' : 'opacity-0 group-hover:opacity-100',
                       )}
                       aria-label="Session menu"
@@ -970,7 +970,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
               type="button"
               onClick={handleOpenDirectoryDialog}
               className={cn(
-                'group flex min-w-0 flex-1 items-center gap-2 rounded-md px-0 py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
+                'group flex min-w-0 flex-1 items-center gap-2 rounded-none-none px-0 py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
                 !isDesktopRuntime && 'hover:bg-sidebar/20',
               )}
               aria-label="Change project directory"
@@ -978,7 +978,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
             >
               <span
                 className={cn(
-                  'flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground group-hover:text-foreground',
+                  'flex h-8 w-8 items-center justify-center rounded-none-none text-muted-foreground group-hover:text-foreground',
                   !isDesktopRuntime && 'bg-sidebar/60',
                 )}
               >
@@ -996,7 +996,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
                 type="button"
                 onClick={handleOpenWorktreeManager}
                 className={cn(
-                  'inline-flex h-10 w-7 flex-shrink-0 items-center justify-center rounded-xl text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
+                  'inline-flex h-10 w-7 flex-shrink-0 items-center justify-center rounded-none-none text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
                   !isDesktopRuntime && 'bg-sidebar/60 hover:bg-sidebar',
                 )}
                 aria-label="Manage worktrees"
@@ -1056,7 +1056,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
                       tabIndex={0}
                       aria-disabled={isCreatingSession}
                       className={cn(
-                        'inline-flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 hover:text-foreground',
+                        'inline-flex h-5 w-5 items-center justify-center rounded-none-none text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 hover:text-foreground',
                         isCreatingSession && 'opacity-40 cursor-default',
                       )}
                       aria-label="Create session in this group"
@@ -1101,7 +1101,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
                           <button
                             type="button"
                             onClick={() => toggleGroupSessionLimit(group.id)}
-                            className="mt-0.5 flex items-center justify-start rounded-md px-1.5 py-0.5 text-left text-xs text-muted-foreground/70 leading-tight hover:text-foreground hover:underline"
+                            className="mt-0.5 flex items-center justify-start rounded-none-none px-1.5 py-0.5 text-left text-xs text-muted-foreground/70 leading-tight hover:text-foreground hover:underline"
                           >
                             Show {remainingCount} more {remainingCount === 1 ? 'session' : 'sessions'}
                           </button>
@@ -1110,7 +1110,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
                           <button
                             type="button"
                             onClick={() => toggleGroupSessionLimit(group.id)}
-                            className="mt-0.5 flex items-center justify-start rounded-md px-1.5 py-0.5 text-left text-xs text-muted-foreground/70 leading-tight hover:text-foreground hover:underline"
+                            className="mt-0.5 flex items-center justify-start rounded-none-none px-1.5 py-0.5 text-left text-xs text-muted-foreground/70 leading-tight hover:text-foreground hover:underline"
                           >
                             Show fewer sessions
                           </button>

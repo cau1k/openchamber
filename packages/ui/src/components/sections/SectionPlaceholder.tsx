@@ -14,7 +14,7 @@ export const SectionPlaceholder: React.FC<SectionPlaceholderProps> = ({ sectionI
     if (variant === 'sidebar') {
         return (
             <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-                <div className="rounded-full bg-accent/40 p-3 text-muted-foreground">
+                <div className="rounded-none-none bg-accent/40 p-3 text-muted-foreground">
                     <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="typography-ui-label font-semibold text-foreground">{config.label}</h3>
@@ -27,7 +27,7 @@ export const SectionPlaceholder: React.FC<SectionPlaceholderProps> = ({ sectionI
 
     return (
         <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
-            <div className="rounded-full bg-accent/40 p-4 text-muted-foreground">
+            <div className="rounded-none-none bg-accent/40 p-4 text-muted-foreground">
                 <Icon className="h-8 w-8" />
             </div>
             <div className="flex flex-col gap-2">

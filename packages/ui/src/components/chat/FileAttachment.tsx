@@ -158,7 +158,7 @@ const FileChip = memo(({ file, onRemove }: FileChipProps) => {
   const displayName = extractFilename(file.filename);
 
   return (
-    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-muted/30 border border-border/30 rounded-xl typography-meta">
+    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-muted/30 border border-border/30 rounded-none-none typography-meta">
       {}
       <div title={file.source === 'server' ? "Server file" : "Local file"}>
         {file.source === 'server' ? (
@@ -192,7 +192,7 @@ export const AttachedFilesList = memo(() => {
 
   return (
     <div className="pb-2">
-      <div className="flex items-center flex-wrap gap-2 px-3 py-2 bg-muted/30 rounded-xl border border-border/30">
+      <div className="flex items-center flex-wrap gap-2 px-3 py-2 bg-muted/30 rounded-none-none border border-border/30">
         <span className="typography-meta text-muted-foreground font-medium">Attached:</span>
         {attachedFiles.map((file) => (
           <FileChip
@@ -286,7 +286,7 @@ export const MessageFilesDisplay = memo(({ files, onShowPopup }: MessageFilesDis
           {otherFiles.map((file, index) => (
             <div
               key={`file-${index}`}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-muted/30 border border-border/30 rounded-xl typography-meta"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-muted/30 border border-border/30 rounded-none-none typography-meta"
             >
               {getFileIcon(file.mime)}
               <span>
@@ -310,7 +310,7 @@ export const MessageFilesDisplay = memo(({ files, onShowPopup }: MessageFilesDis
                     <button
                       type="button"
                       onClick={() => handleImageClick(file)}
-                      className="relative flex-none w-32 sm:w-36 md:w-40 aspect-square rounded-xl border border-border/40 bg-muted/10 overflow-hidden snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary"
+                      className="relative flex-none w-32 sm:w-36 md:w-40 aspect-square rounded-none-none border border-border/40 bg-muted/10 overflow-hidden snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-primary"
                       aria-label={filename}
                     >
                       {file.url ? (

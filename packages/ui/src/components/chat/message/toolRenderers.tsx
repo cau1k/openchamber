@@ -68,7 +68,7 @@ export const renderListOutput = (output: string, options?: { unstyled?: boolean 
             <div
                 className={cn(
                     'w-full min-w-0 font-mono space-y-0.5',
-                    options?.unstyled ? null : 'p-3 bg-muted/20 rounded-xl border border-border/30'
+                    options?.unstyled ? null : 'p-3 bg-muted/20 rounded-none-none border border-border/30'
                 )}
                 style={typography.tool.popup}
             >
@@ -113,7 +113,7 @@ export const renderGrepOutput = (output: string, isMobile: boolean, options?: { 
             <div
                 className={cn(
                     'space-y-2 w-full min-w-0',
-                    options?.unstyled ? null : 'p-3 bg-muted/20 rounded-xl border border-border/30'
+                    options?.unstyled ? null : 'p-3 bg-muted/20 rounded-none-none border border-border/30'
                 )}
                 style={typography.tool.popup}
             >
@@ -132,7 +132,7 @@ export const renderGrepOutput = (output: string, isMobile: boolean, options?: { 
                                 }
                                 return (
                                     <div key={idx} className={cn('flex items-start gap-2 min-w-0', isMobile ? 'typography-micro' : 'typography-code')}>
-                                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: 'var(--status-info)', opacity: 0.6 }} />
+                                        <div className="w-1.5 h-1.5 rounded-none-none flex-shrink-0 mt-1.5" style={{ backgroundColor: 'var(--status-info)', opacity: 0.6 }} />
                                         <div className="flex gap-2 min-w-0 flex-1">
                                             {match.lineNum && (
                                                 <span className="text-muted-foreground font-mono whitespace-nowrap">
@@ -180,7 +180,7 @@ export const renderGlobOutput = (output: string, isMobile: boolean, options?: { 
             <div
                 className={cn(
                     'space-y-2 w-full min-w-0',
-                    options?.unstyled ? null : 'p-3 bg-muted/20 rounded-xl border border-border/30'
+                    options?.unstyled ? null : 'p-3 bg-muted/20 rounded-none-none border border-border/30'
                 )}
                 style={typography.tool.popup}
             >
@@ -195,7 +195,7 @@ export const renderGlobOutput = (output: string, isMobile: boolean, options?: { 
                         <div className={cn('pl-4 grid gap-1', isMobile ? 'grid-cols-1' : 'grid-cols-2')}>
                             {groups[dir].sort().map((filename) => (
                                 <div key={filename} className={cn('flex items-center gap-2 min-w-0', isMobile ? 'typography-micro' : 'typography-code')}>
-                                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: 'var(--status-info)', opacity: 0.6 }} />
+                                    <div className="w-1.5 h-1.5 rounded-none-none flex-shrink-0" style={{ backgroundColor: 'var(--status-info)', opacity: 0.6 }} />
                                     <span className="text-foreground font-mono truncate">{filename}</span>
                                 </div>
                             ))}
@@ -231,7 +231,7 @@ export const renderTodoOutput = (output: string, options?: { unstyled?: boolean 
         };
 
         const getPriorityDot = (priority?: string) => {
-            const baseClasses = 'w-2 h-2 rounded-full flex-shrink-0 mt-1';
+            const baseClasses = 'w-2 h-2 rounded-none-none flex-shrink-0 mt-1';
             switch (priority) {
                 case 'high':
                     return <div className={baseClasses} style={{ backgroundColor: 'var(--status-error)' }} />;
@@ -248,7 +248,7 @@ export const renderTodoOutput = (output: string, options?: { unstyled?: boolean 
             <div
                 className={cn(
                     'space-y-3 w-full min-w-0',
-                    options?.unstyled ? null : 'p-3 bg-muted/20 rounded-xl border border-border/30'
+                    options?.unstyled ? null : 'p-3 bg-muted/20 rounded-none-none border border-border/30'
                 )}
                 style={typography.tool.popup}
             >
@@ -271,7 +271,7 @@ export const renderTodoOutput = (output: string, options?: { unstyled?: boolean 
                 {todosByStatus.in_progress.length > 0 && (
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--foreground)' }} />
+                            <div className="w-2 h-2 rounded-none-none animate-pulse" style={{ backgroundColor: 'var(--foreground)' }} />
                             <span className="typography-meta font-semibold text-foreground uppercase tracking-wide">In Progress</span>
                         </div>
                         <div className="space-y-1.5 pl-4">
@@ -288,7 +288,7 @@ export const renderTodoOutput = (output: string, options?: { unstyled?: boolean 
                 {todosByStatus.pending.length > 0 && (
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-muted-foreground/50" />
+                            <div className="w-2 h-2 rounded-none-none bg-muted-foreground/50" />
                             <span className="typography-meta font-semibold text-muted-foreground uppercase tracking-wide">Pending</span>
                         </div>
                         <div className="space-y-1.5 pl-4">
@@ -348,7 +348,7 @@ export const renderWebSearchOutput = (output: string, _syntaxTheme: { [key: stri
             <div
                 className={cn(
                     'typography-code max-w-none w-full min-w-0',
-                    options?.unstyled ? null : 'p-3 bg-muted/20 rounded-xl border border-border/20'
+                    options?.unstyled ? null : 'p-3 bg-muted/20 rounded-none-none border border-border/20'
                 )}
                 style={typography.tool.popup}
             >

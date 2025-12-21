@@ -185,7 +185,7 @@ export const UpdateDialog: React.FC<UpdateDialogProps> = ({
 
           {info?.body && !isWebUpdating && (
             <ScrollableOverlay
-              className="max-h-48 rounded-md border border-border bg-muted/30 p-3"
+              className="max-h-48 rounded-none-none border border-border bg-muted/30 p-3"
               fillContainer={false}
             >
               <div className="text-sm text-muted-foreground whitespace-pre-wrap pr-3">
@@ -215,13 +215,13 @@ export const UpdateDialog: React.FC<UpdateDialogProps> = ({
                 <span>Or update via terminal:</span>
               </div>
               <div className="flex items-center gap-2">
-                <code className="flex-1 px-3 py-2 bg-muted rounded-md font-mono text-sm text-foreground overflow-x-auto">
+                <code className="flex-1 px-3 py-2 bg-muted rounded-none-none font-mono text-sm text-foreground overflow-x-auto">
                   {updateCommand}
                 </code>
                 <button
                   onClick={handleCopyCommand}
                   className={cn(
-                    'flex items-center justify-center p-2 rounded-md',
+                    'flex items-center justify-center p-2 rounded-none-none',
                     'text-muted-foreground hover:text-foreground hover:bg-accent',
                     'transition-colors',
                     copied && 'text-primary'
@@ -245,7 +245,7 @@ export const UpdateDialog: React.FC<UpdateDialogProps> = ({
                 <span className="text-muted-foreground">Downloading...</span>
                 <span className="font-mono">{progressPercent}%</span>
               </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div className="h-2 bg-muted rounded-none-none overflow-hidden">
                 <div
                   className="h-full bg-primary transition-all duration-300"
                   style={{ width: `${progressPercent}%` }}
@@ -255,7 +255,7 @@ export const UpdateDialog: React.FC<UpdateDialogProps> = ({
           )}
 
           {(error || webError) && (
-            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-none-none">
               <p className="text-sm text-destructive">{error || webError}</p>
             </div>
           )}
@@ -266,7 +266,7 @@ export const UpdateDialog: React.FC<UpdateDialogProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               className={cn(
-                'flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md',
+                'flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-none-none',
                 'text-sm text-muted-foreground',
                 'hover:text-foreground hover:bg-accent',
                 'transition-colors'
@@ -281,7 +281,7 @@ export const UpdateDialog: React.FC<UpdateDialogProps> = ({
               <button
                 onClick={onDownload}
                 className={cn(
-                  'flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-md',
+                  'flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-none-none',
                   'text-sm font-medium',
                   'bg-primary text-primary-foreground',
                   'hover:bg-primary/90',
@@ -297,7 +297,7 @@ export const UpdateDialog: React.FC<UpdateDialogProps> = ({
               <button
                 disabled
                 className={cn(
-                  'flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-md',
+                  'flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-none-none',
                   'text-sm font-medium',
                   'bg-primary/50 text-primary-foreground',
                   'cursor-not-allowed'
@@ -312,7 +312,7 @@ export const UpdateDialog: React.FC<UpdateDialogProps> = ({
               <button
                 onClick={onRestart}
                 className={cn(
-                  'flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-md',
+                  'flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-none-none',
                   'text-sm font-medium',
                   'bg-primary text-primary-foreground',
                   'hover:bg-primary/90',
@@ -329,7 +329,7 @@ export const UpdateDialog: React.FC<UpdateDialogProps> = ({
               <button
                 onClick={handleWebUpdate}
                 className={cn(
-                  'flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-md',
+                  'flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-none-none',
                   'text-sm font-medium',
                   'bg-primary text-primary-foreground',
                   'hover:bg-primary/90',
@@ -346,7 +346,7 @@ export const UpdateDialog: React.FC<UpdateDialogProps> = ({
               <button
                 disabled
                 className={cn(
-                  'flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-md',
+                  'flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-none-none',
                   'text-sm font-medium',
                   'bg-primary/50 text-primary-foreground',
                   'cursor-not-allowed'

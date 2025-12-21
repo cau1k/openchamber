@@ -145,7 +145,7 @@ const ProgressiveGroup: React.FC<ProgressiveGroupProps> = ({
                 {}
                 <div
                     className={cn(
-                        'group/tool flex items-center gap-2 pr-2 pl-px pt-0 pb-1.5 rounded-xl cursor-pointer'
+                        'group/tool flex items-center gap-2 pr-2 pl-px pt-0 pb-1.5 rounded-none-none cursor-pointer'
                     )}
                     onClick={onToggle}
                 >

@@ -60,15 +60,15 @@ export function AnimatedTabs<T extends string>({
       <div
         ref={containerRef}
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-10 overflow-hidden rounded-lg [clip-path:inset(0_75%_0_0_round_8px)] [transition:clip-path_200ms_ease]"
+        className="pointer-events-none absolute inset-0 z-10 overflow-hidden rounded-none-none [clip-path:inset(0_75%_0_0_round_8px)] [transition:clip-path_200ms_ease]"
       >
-        <div className="flex h-9 items-center gap-1 rounded-lg bg-accent px-1.5 text-accent-foreground">
+        <div className="flex h-9 items-center gap-1 rounded-none-none bg-accent px-1.5 text-accent-foreground">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <div
                 key={tab.value}
-                className="flex h-7 flex-1 items-center justify-center gap-1.25 rounded-lg px-2.5 text-sm font-semibold"
+                className="flex h-7 flex-1 items-center justify-center gap-1.25 rounded-none-none px-2.5 text-sm font-semibold"
               >
                 {Icon ? <Icon className="h-4 w-4" /> : null}
                 <span className="truncate">{tab.label}</span>
@@ -79,7 +79,7 @@ export function AnimatedTabs<T extends string>({
         </div>
       </div>
 
-      <div className="relative z-20 flex h-9 items-center gap-1 rounded-lg bg-muted/20 px-1.5">
+      <div className="relative z-20 flex h-9 items-center gap-1 rounded-none-none bg-muted/20 px-1.5">
         {tabs.map((tab) => {
           const isActive = value === tab.value;
           const Icon = tab.icon;
@@ -94,7 +94,7 @@ export function AnimatedTabs<T extends string>({
                 onValueChange(tab.value);
               }}
               className={cn(
-                'flex h-7 flex-1 items-center justify-center gap-1.25 rounded-lg px-2.5 text-sm font-semibold transition-colors duration-150',
+                'flex h-7 flex-1 items-center justify-center gap-1.25 rounded-none-none px-2.5 text-sm font-semibold transition-colors duration-150',
                 isActive ? 'text-accent-foreground' : 'text-muted-foreground',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background'
               )}

@@ -59,7 +59,7 @@ export const AgentSelector: React.FC<AgentSelectorProps> = ({
                                 key={agent.name}
                                 type="button"
                                 className={cn(
-                                    'flex w-full items-center justify-between rounded-lg border border-border/40 bg-background/95 px-2 py-1.5 text-left',
+                                    'flex w-full items-center justify-between rounded-none-none border border-border/40 bg-background/95 px-2 py-1.5 text-left',
                                     isSelected ? 'bg-primary/10 text-primary' : 'text-foreground'
                                 )}
                                 onClick={() => {
@@ -76,7 +76,7 @@ export const AgentSelector: React.FC<AgentSelectorProps> = ({
                                     )}
                                 </div>
                                 {isSelected && (
-                                    <div className="h-2 w-2 rounded-full bg-primary" />
+                                    <div className="h-2 w-2 rounded-none-none bg-primary" />
                                 )}
                             </button>
                         );
@@ -84,7 +84,7 @@ export const AgentSelector: React.FC<AgentSelectorProps> = ({
 
                     <button
                         type="button"
-                        className="flex w-full items-center justify-between rounded-lg border border-border/40 bg-background/95 px-2 py-1.5 text-left"
+                        className="flex w-full items-center justify-between rounded-none-none border border-border/40 bg-background/95 px-2 py-1.5 text-left"
                         onClick={() => {
                             handleAgentChange('');
                             closeMobilePanel();
@@ -104,7 +104,7 @@ export const AgentSelector: React.FC<AgentSelectorProps> = ({
                     type="button"
                     onClick={() => setIsMobilePanelOpen(true)}
                     className={cn(
-                        'flex w-full items-center justify-between gap-2 rounded-lg border border-border/40 bg-background/95 px-2 py-1.5 text-left',
+                        'flex w-full items-center justify-between gap-2 rounded-none-none border border-border/40 bg-background/95 px-2 py-1.5 text-left',
                         className
                     )}
                 >
@@ -120,7 +120,7 @@ export const AgentSelector: React.FC<AgentSelectorProps> = ({
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <div className={cn(
-                            'flex items-center gap-2 px-2 rounded-lg bg-accent/20 border border-border/20 cursor-pointer hover:bg-accent/30 h-6 w-fit',
+                            'flex items-center gap-2 px-2 rounded-none-none bg-accent/20 border border-border/20 cursor-pointer hover:bg-accent/30 h-6 w-fit',
                             className
                         )}>
                             <RiRobot2Line className="h-3 w-3 flex-shrink-0 text-muted-foreground" />

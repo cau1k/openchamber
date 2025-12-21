@@ -201,7 +201,7 @@ export const CommandsPage: React.FC = () => {
                   className="sr-only"
                 />
                 <div className={cn(
-                  "w-5 h-5 rounded border-2 flex items-center justify-center",
+                  "w-5 h-5 rounded-none border-2 flex items-center justify-center",
                   subtask
                     ? "bg-primary border-primary"
                     : "bg-background border-border hover:border-primary/50"
@@ -252,7 +252,7 @@ Use @filename to include file contents.`}
             <p className="font-medium">Template Features:</p>
             <ul className="list-disc list-inside space-y-0.5 ml-2">
               <li className="flex items-center gap-2">
-                <code className="bg-muted px-1 rounded">$ARGUMENTS</code>
+                <code className="bg-muted px-1 rounded-none">$ARGUMENTS</code>
                 <span>- User input after command</span>
                 <Tooltip delayDuration={1000}>
                   <TooltipTrigger asChild>
@@ -265,7 +265,7 @@ Use @filename to include file contents.`}
                 </Tooltip>
               </li>
               <li className="flex items-center gap-2">
-                <code className="bg-muted px-1 rounded">!`command`</code>
+                <code className="bg-muted px-1 rounded-none">!`command`</code>
                 <span>- Inject shell command output</span>
                 <Tooltip delayDuration={1000}>
                   <TooltipTrigger asChild>
@@ -278,7 +278,7 @@ Use @filename to include file contents.`}
                 </Tooltip>
               </li>
               <li className="flex items-center gap-2">
-                <code className="bg-muted px-1 rounded">@filename</code>
+                <code className="bg-muted px-1 rounded-none">@filename</code>
                 <span>- Include file contents</span>
                 <Tooltip delayDuration={1000}>
                   <TooltipTrigger asChild>

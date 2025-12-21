@@ -23,7 +23,7 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({ isUser, providerID, agent
                     <div className="flex items-center gap-2">
                         <div className="flex-shrink-0">
                             {isUser ? (
-                                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                                <div className="w-9 h-9 rounded-none-none bg-primary/10 flex items-center justify-center">
                                     <RiUser3Line className="h-4 w-4 text-primary" />
                                 </div>
                             ) : (
@@ -59,7 +59,7 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({ isUser, providerID, agent
                             {!isUser && agentName && (
                                 <div
                                     className={cn(
-                                        'flex items-center gap-1 px-1.5 py-0 rounded',
+                                        'flex items-center gap-1 px-1.5 py-0 rounded-none',
                                         'agent-badge typography-meta',
                                         getAgentColor(agentName).class
                                     )}

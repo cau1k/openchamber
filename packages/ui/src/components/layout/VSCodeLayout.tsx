@@ -286,7 +286,7 @@ const VSCodeHeader: React.FC<VSCodeHeaderProps> = ({ title, showBack, onBack, on
       {showBack && onBack && (
         <button
           onClick={onBack}
-          className="p-1 rounded hover:bg-muted transition-colors"
+          className="p-1 rounded-none hover:bg-muted transition-colors"
           aria-label="Back to sessions"
         >
           <RiArrowLeftLine className="h-5 w-5" />
@@ -296,7 +296,7 @@ const VSCodeHeader: React.FC<VSCodeHeaderProps> = ({ title, showBack, onBack, on
       {onNewSession && (
         <button
           onClick={onNewSession}
-          className="p-1 rounded hover:bg-muted transition-colors"
+          className="p-1 rounded-none hover:bg-muted transition-colors"
           aria-label="New session"
         >
           <RiAddLine className="h-5 w-5" />
@@ -305,7 +305,7 @@ const VSCodeHeader: React.FC<VSCodeHeaderProps> = ({ title, showBack, onBack, on
       {onSettings && (
         <button
           onClick={onSettings}
-          className="p-1 rounded hover:bg-muted transition-colors"
+          className="p-1 rounded-none hover:bg-muted transition-colors"
           aria-label="Settings"
         >
           <RiSettings3Line className="h-5 w-5" />

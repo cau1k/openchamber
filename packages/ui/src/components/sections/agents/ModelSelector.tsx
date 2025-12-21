@@ -91,7 +91,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                 <div className="space-y-1">
                     {/* Favorites Section for Mobile */}
                     {favoriteModelsList.length > 0 && (
-                        <div className="rounded-xl border border-border/40 bg-background/95 mb-2">
+                        <div className="rounded-none-none border border-border/40 bg-background/95 mb-2">
                             <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                 Favorites
                             </div>
@@ -151,7 +151,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
 
                     {/* Recents Section for Mobile */}
                     {recentModelsList.length > 0 && (
-                        <div className="rounded-xl border border-border/40 bg-background/95 mb-2">
+                        <div className="rounded-none-none border border-border/40 bg-background/95 mb-2">
                             <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                 Recents
                             </div>
@@ -217,7 +217,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                         const isExpanded = expandedMobileProviders.has(provider.id);
 
                         return (
-                            <div key={provider.id} className="rounded-xl border border-border/40 bg-background/95">
+                            <div key={provider.id} className="rounded-none-none border border-border/40 bg-background/95">
                                 <button
                                     type="button"
                                     className="flex w-full items-center justify-between gap-1.5 px-2 py-1.5 text-left"
@@ -296,7 +296,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                                                         </button>
                                                         
                                                         {isSelectedModel && (
-                                                            <div className="h-2 w-2 rounded-full bg-primary" />
+                                                            <div className="h-2 w-2 rounded-none-none bg-primary" />
                                                         )}
                                                     </div>
                                                 </div>
@@ -310,7 +310,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
 
                     <button
                         type="button"
-                        className="flex w-full items-center justify-between rounded-lg border border-border/40 bg-background/95 px-2 py-1.5 text-left"
+                        className="flex w-full items-center justify-between rounded-none-none border border-border/40 bg-background/95 px-2 py-1.5 text-left"
                         onClick={() => {
                             handleProviderAndModelChange('', '');
                             closeMobilePanel();
@@ -330,7 +330,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                     type="button"
                     onClick={() => setIsMobilePanelOpen(true)}
                     className={cn(
-                        'flex w-full items-center justify-between gap-2 rounded-lg border border-border/40 bg-background/95 px-2 py-1.5 text-left',
+                        'flex w-full items-center justify-between gap-2 rounded-none-none border border-border/40 bg-background/95 px-2 py-1.5 text-left',
                         className
                     )}
                 >
@@ -353,7 +353,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <div className={cn(
-                            'flex items-center gap-2 px-2 rounded-lg bg-accent/20 border border-border/20 cursor-pointer hover:bg-accent/30 h-6 w-fit',
+                            'flex items-center gap-2 px-2 rounded-none-none bg-accent/20 border border-border/20 cursor-pointer hover:bg-accent/30 h-6 w-fit',
                             className
                         )}>
                             {providerId ? (

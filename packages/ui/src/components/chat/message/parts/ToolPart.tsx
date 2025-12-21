@@ -192,7 +192,7 @@ const ToolScrollableSection: React.FC<ToolScrollableSectionProps> = ({
 }) => (
     <ScrollableOverlay
         outerClassName={cn('w-full min-w-0 flex-none overflow-hidden', maxHeightClass, outerClassName)}
-        className={cn('tool-output-surface p-2 rounded-xl w-full min-w-0 border border-border/20 bg-transparent', className)}
+        className={cn('tool-output-surface p-2 rounded-none-none w-full min-w-0 border border-border/20 bg-transparent', className)}
         disableHorizontal={disableHorizontal}
     >
         <div className="w-full min-w-0">
@@ -403,7 +403,7 @@ const WriteInputPreview: React.FC<WriteInputPreviewProps> = ({ content, syntaxTh
 
     return (
         <div className="w-full min-w-0">
-            <div className="bg-muted/20 px-2 py-1 typography-meta font-medium text-muted-foreground border border-border/10 rounded-lg mb-1">
+            <div className="bg-muted/20 px-2 py-1 typography-meta font-medium text-muted-foreground border border-border/10 rounded-none-none mb-1">
                 {`${displayPath} (${headerLineLabel})`}
             </div>
             <div className="space-y-0">
@@ -470,14 +470,14 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ content, filePath, displayP
 
     return (
         <div className="w-full min-w-0">
-            <div className="bg-muted/20 px-2 py-1 typography-meta font-medium text-muted-foreground border border-border/10 rounded-lg mb-2">
+            <div className="bg-muted/20 px-2 py-1 typography-meta font-medium text-muted-foreground border border-border/10 rounded-none-none mb-2">
                 {displayPath}
             </div>
-            <div className="flex justify-center p-4 bg-muted/10 rounded-lg border border-border/10">
+            <div className="flex justify-center p-4 bg-muted/10 rounded-none-none border border-border/10">
                 <img
                     src={imageSrc}
                     alt={displayPath}
-                    className="max-w-full max-h-96 object-contain rounded"
+                    className="max-w-full max-h-96 object-contain rounded-none"
                     style={{ imageRendering: 'auto' }}
                 />
             </div>
@@ -580,7 +580,7 @@ const ToolExpandedContent: React.FC<ToolExpandedContentProps> = ({
                 return (
                     <div>
                         <div className="typography-meta font-medium text-muted-foreground mb-1">Error:</div>
-                        <div className="typography-meta p-2 rounded-xl border" style={{
+                        <div className="typography-meta p-2 rounded-none-none border" style={{
                             backgroundColor: 'var(--status-error-background)',
                             color: 'var(--status-error)',
                             borderColor: 'var(--status-error-border)',
@@ -809,7 +809,7 @@ const ToolExpandedContent: React.FC<ToolExpandedContentProps> = ({
                     {state.status === 'error' && 'error' in state && (
                         <div>
                             <div className="typography-meta font-medium text-muted-foreground/80 mb-1">Error:</div>
-                            <div className="typography-meta p-2 rounded-xl border" style={{
+                            <div className="typography-meta p-2 rounded-none-none border" style={{
                                 backgroundColor: 'var(--status-error-background)',
                                 color: 'var(--status-error)',
                                 borderColor: 'var(--status-error-border)',
@@ -944,7 +944,7 @@ const ToolPart: React.FC<ToolPartProps> = ({ part, isExpanded, onToggle, syntaxT
             {}
             <div
                 className={cn(
-                    'group/tool flex items-center gap-2 pr-2 pl-px py-1.5 rounded-xl cursor-pointer'
+                    'group/tool flex items-center gap-2 pr-2 pl-px py-1.5 rounded-none-none cursor-pointer'
                 )}
                 onClick={handleMainClick}
             >

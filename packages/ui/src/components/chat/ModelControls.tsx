@@ -828,7 +828,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
     const renderIconBadge = (IconComp: IconComponent, label: string, key: string) => (
         <span
             key={key}
-            className="flex h-5 w-5 items-center justify-center rounded-xl bg-muted/60 text-muted-foreground"
+            className="flex h-5 w-5 items-center justify-center rounded-none-none bg-muted/60 text-muted-foreground"
             title={label}
             aria-label={label}
             role="img"
@@ -883,14 +883,14 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
             >
                 <div className="flex flex-col gap-1.5">
                     {}
-                    <div className="rounded-xl border border-border/40 bg-sidebar/30 px-2 py-1.5">
+                    <div className="rounded-none-none border border-border/40 bg-sidebar/30 px-2 py-1.5">
                         <div className="typography-micro text-muted-foreground mb-0.5">Provider</div>
                         <div className="typography-meta text-foreground font-medium">{getProviderDisplayName()}</div>
                     </div>
 
                     {}
                     {currentCapabilityIcons.length > 0 && (
-                        <div className="rounded-xl border border-border/40 bg-sidebar/30 px-2 py-1.5">
+                        <div className="rounded-none-none border border-border/40 bg-sidebar/30 px-2 py-1.5">
                             <div className="typography-micro text-muted-foreground mb-1">Capabilities</div>
                             <div className="flex flex-wrap gap-1.5">
                                 {currentCapabilityIcons.map(({ key, icon, label }) => (
@@ -905,7 +905,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
 
                     {}
                     {(inputModalityIcons.length > 0 || outputModalityIcons.length > 0) && (
-                        <div className="rounded-xl border border-border/40 bg-sidebar/30 px-2 py-1.5">
+                        <div className="rounded-none-none border border-border/40 bg-sidebar/30 px-2 py-1.5">
                             <div className="typography-micro text-muted-foreground mb-1">Modalities</div>
                             <div className="flex flex-col gap-1">
                                 {inputModalityIcons.length > 0 && (
@@ -929,7 +929,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                     )}
 
                     {}
-                    <div className="rounded-xl border border-border/40 bg-sidebar/30 px-2 py-1.5">
+                    <div className="rounded-none-none border border-border/40 bg-sidebar/30 px-2 py-1.5">
                         <div className="typography-micro text-muted-foreground mb-1">Limits</div>
                         <div className="flex flex-col gap-0.5">
                             <div className="flex items-center justify-between">
@@ -944,7 +944,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                     </div>
 
                     {}
-                    <div className="rounded-xl border border-border/40 bg-sidebar/30 px-2 py-1.5">
+                    <div className="rounded-none-none border border-border/40 bg-sidebar/30 px-2 py-1.5">
                         <div className="typography-micro text-muted-foreground mb-1">Metadata</div>
                         <div className="flex flex-col gap-0.5">
                             <div className="flex items-center justify-between">
@@ -996,13 +996,13 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                 <div className="flex flex-col gap-1.5">
                     {}
                     {currentAgent.description && (
-                        <div className="rounded-xl border border-border/40 bg-sidebar/30 px-2 py-1.5">
+                        <div className="rounded-none-none border border-border/40 bg-sidebar/30 px-2 py-1.5">
                             <div className="typography-meta text-foreground">{currentAgent.description}</div>
                         </div>
                     )}
 
                     {}
-                    <div className="rounded-xl border border-border/40 bg-sidebar/30 px-2 py-1.5">
+                    <div className="rounded-none-none border border-border/40 bg-sidebar/30 px-2 py-1.5">
                         <div className="typography-micro text-muted-foreground mb-0.5">Mode</div>
                         <div className="typography-meta text-foreground font-medium">
                             {currentAgent.mode === 'primary' ? 'Primary' : currentAgent.mode === 'subagent' ? 'Subagent' : currentAgent.mode === 'all' ? 'All' : '—'}
@@ -1011,7 +1011,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
 
                     {}
                     {(hasModelConfig || hasTemperatureOrTopP) && (
-                        <div className="rounded-xl border border-border/40 bg-sidebar/30 px-2 py-1.5">
+                        <div className="rounded-none-none border border-border/40 bg-sidebar/30 px-2 py-1.5">
                             <div className="typography-micro text-muted-foreground mb-1">Model</div>
                             {hasModelConfig && (
                                 <div className="typography-meta text-foreground font-medium mb-1">
@@ -1038,14 +1038,14 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                     )}
 
                     {}
-                    <div className="rounded-xl border border-border/40 bg-sidebar/30 px-2 py-1.5">
+                    <div className="rounded-none-none border border-border/40 bg-sidebar/30 px-2 py-1.5">
                         <div className="typography-micro text-muted-foreground mb-1">Tools</div>
                         {enabledTools.length > 0 ? (
                             <div className="flex flex-wrap gap-1 leading-tight">
                                 {enabledTools.map((tool) => (
                                     <span
                                         key={tool}
-                                        className="inline-flex items-center rounded-lg bg-muted/60 px-1.5 py-0.5 typography-meta text-foreground"
+                                        className="inline-flex items-center rounded-none-none bg-muted/60 px-1.5 py-0.5 typography-meta text-foreground"
                                     >
                                         {tool}
                                     </span>
@@ -1057,7 +1057,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                     </div>
 
                     {}
-                    <div className="rounded-xl border border-border/40 bg-sidebar/30 px-2 py-1.5">
+                    <div className="rounded-none-none border border-border/40 bg-sidebar/30 px-2 py-1.5">
                         <div className="typography-micro text-muted-foreground mb-1">Permissions</div>
                         <div className="flex flex-col gap-1">
                             <div className="flex items-center justify-between">
@@ -1092,7 +1092,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
 
                     {}
                     {hasCustomPrompt && (
-                        <div className="rounded-xl border border-border/40 bg-sidebar/30 px-2 py-1.5">
+                        <div className="rounded-none-none border border-border/40 bg-sidebar/30 px-2 py-1.5">
                             <div className="flex items-center justify-between">
                                 <span className="typography-meta text-muted-foreground/80">Custom Prompt</span>
                                 <RiCheckboxCircleLine className="h-4 w-4 text-foreground" />
@@ -1139,7 +1139,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                                 value={mobileModelQuery}
                                 onChange={(event) => setMobileModelQuery(event.target.value)}
                                 placeholder="Search providers or models"
-                                className="pl-7 h-9 rounded-xl border-border/40 bg-background/95 typography-meta"
+                                className="pl-7 h-9 rounded-none-none border-border/40 bg-background/95 typography-meta"
                             />
                             {mobileModelQuery && (
                                 <button
@@ -1162,7 +1162,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
 
                     {/* Favorites Section for Mobile */}
                     {!mobileModelQuery && favoriteModelsList.length > 0 && (
-                        <div className="rounded-xl border border-border/40 bg-background/95 overflow-hidden">
+                        <div className="rounded-none-none border border-border/40 bg-background/95 overflow-hidden">
                             <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                 <RiStarFill className="h-3 w-3 inline-block mr-1.5 text-primary" />
                                 Favorites
@@ -1180,7 +1180,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                                             className={cn(
                                                 'flex w-full items-start gap-2 border-b border-border/30 px-2 py-1.5 text-left last:border-b-0',
                                                 'focus:outline-none focus-visible:ring-1 focus-visible:ring-primary',
-                                                'first:rounded-t-xl last:rounded-b-xl transition-colors',
+                                                'first:rounded-none-t-xl last:rounded-none-b-xl transition-colors',
                                                 isSelected ? 'bg-primary/15 text-primary' : 'hover:bg-muted'
                                             )}
                                         >
@@ -1208,7 +1208,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
 
                     {/* Recent Section for Mobile */}
                     {!mobileModelQuery && recentModelsList.length > 0 && (
-                        <div className="rounded-xl border border-border/40 bg-background/95 overflow-hidden">
+                        <div className="rounded-none-none border border-border/40 bg-background/95 overflow-hidden">
                             <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                                 <RiTimeLine className="h-3 w-3 inline-block mr-1.5" />
                                 Recent
@@ -1226,7 +1226,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                                             className={cn(
                                                 'flex w-full items-start gap-2 border-b border-border/30 px-2 py-1.5 text-left last:border-b-0',
                                                 'focus:outline-none focus-visible:ring-1 focus-visible:ring-primary',
-                                                'first:rounded-t-xl last:rounded-b-xl transition-colors',
+                                                'first:rounded-none-t-xl last:rounded-none-b-xl transition-colors',
                                                 isSelected ? 'bg-primary/15 text-primary' : 'hover:bg-muted'
                                             )}
                                         >
@@ -1261,7 +1261,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                         const isExpanded = expandedMobileProviders.has(provider.id) || normalizedQuery.length > 0;
 
                         return (
-                            <div key={provider.id} className="rounded-xl border border-border/40 bg-background/95 overflow-hidden">
+                            <div key={provider.id} className="rounded-none-none border border-border/40 bg-background/95 overflow-hidden">
                                 <button
                                     type="button"
                                     onClick={() => toggleMobileProviderExpansion(provider.id)}
@@ -1300,7 +1300,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                                                     key={model.id}
                                                     className={cn(
                                                         'flex w-full items-start gap-2 border-b border-border/30 px-2 py-1.5 last:border-b-0',
-                                                        'rounded-lg transition-colors',
+                                                        'rounded-none-none transition-colors',
                                                         !isSelected && 'hover:bg-muted',
                                                         isSelected
                                                             ? 'bg-primary/15 text-primary'
@@ -1399,7 +1399,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                                 key={agent.name}
                                 type="button"
                                 className={cn(
-                                    'flex w-full flex-col gap-1 rounded-xl border px-2 py-1.5 text-left',
+                                    'flex w-full flex-col gap-1 rounded-none-none border px-2 py-1.5 text-left',
                                     'focus:outline-none focus-visible:ring-1 focus-visible:ring-primary agent-list-item',
                                     agentColor.class,
                                     isSelected ? 'active' : 'border-border/40'
@@ -1407,7 +1407,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                                 onClick={() => handleAgentChange(agent.name)}
                             >
                                 <div className="flex items-center gap-1.5">
-                                    <div className={cn('h-2 w-2 rounded-full', agentColor.class)} />
+                                    <div className={cn('h-2 w-2 rounded-none-none', agentColor.class)} />
                                     <span
                                         className="typography-meta font-medium text-foreground"
                                         style={isSelected ? { color: `var(${agentColor.var})` } : undefined}
@@ -1423,7 +1423,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                             </button>
                         );
                     })}
-                    <div className="rounded-xl border border-border/40 bg-sidebar/30">
+                    <div className="rounded-none-none border border-border/40 bg-sidebar/30">
                         <button
                             type="button"
                             disabled={editToggleDisabled}
@@ -1434,7 +1434,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                             }}
                             className={cn(
                                 'flex w-full items-center justify-between gap-2 px-2 py-1.5 text-left bg-transparent',
-                                'focus:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded-t-xl',
+                                'focus:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded-none-t-xl',
                                 editToggleDisabled ? 'cursor-not-allowed opacity-60' : undefined
                             )}
                         >
@@ -1486,7 +1486,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                                                 disabled={option.disabled}
                                                 onClick={() => handleEditPermissionSelect(option.mode)}
                                                 className={cn(
-                                                    'flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left',
+                                                    'flex w-full items-start gap-2 rounded-none-none px-2 py-1.5 text-left',
                                                     option.disabled ? 'cursor-not-allowed opacity-50' : 'focus:bg-transparent hover:bg-transparent',
                                                     isSelected ? 'bg-primary/10' : undefined
                                                 )}
@@ -2062,7 +2062,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                                 {enabledTools.map((tool) => (
                                     <span
                                         key={tool}
-                                        className="inline-flex items-center rounded-lg bg-muted/60 px-1.5 py-0.5 typography-meta text-foreground"
+                                        className="inline-flex items-center rounded-none-none bg-muted/60 px-1.5 py-0.5 typography-meta text-foreground"
                                     >
                                         {tool}
                                     </span>
@@ -2159,7 +2159,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                                         <div className="flex flex-col gap-0.5">
                                             <div className="flex items-center gap-1.5">
                                                 <div className={cn(
-                                                    'h-1 w-1 rounded-full agent-dot',
+                                                    'h-1 w-1 rounded-none-none agent-dot',
                                                     getAgentColor(agent.name).class
                                                 )} />
                                                 <span className="font-medium">{capitalizeAgentName(agent.name)}</span>
@@ -2184,7 +2184,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                                             setDesktopEditOptionsOpen((previous) => !previous);
                                         }}
                                         className={cn(
-                                            'flex w-full items-center justify-between gap-2 rounded-xl px-2 py-2 text-left',
+                                            'flex w-full items-center justify-between gap-2 rounded-none-none px-2 py-2 text-left',
                                             'focus:outline-none focus-visible:ring-0',
                                             editToggleDisabled ? 'cursor-not-allowed opacity-60' : undefined
                                         )}
@@ -2230,7 +2230,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                                     {desktopEditOptionsOpen && !editToggleDisabled && (
                                         <div
                                             id={desktopEditOptionsId}
-                                            className="flex flex-col gap-1 rounded-xl border border-border/40 px-2 py-2 bg-transparent"
+                                            className="flex flex-col gap-1 rounded-none-none border border-border/40 px-2 py-2 bg-transparent"
                                             role="group"
                                             aria-label="Edit permission options"
                                         >
@@ -2244,7 +2244,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({ className }) => {
                                                         disabled={option.disabled}
                                                         onClick={() => handleEditPermissionSelect(option.mode)}
                                                         className={cn(
-                                                            'flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left',
+                                                            'flex w-full items-center gap-2 rounded-none-none px-2 py-1.5 text-left',
                                                             option.disabled ? 'cursor-not-allowed opacity-50' : 'focus:outline-none focus-visible:ring-0',
                                                             isSelected ? 'bg-primary/10' : undefined
                                                         )}

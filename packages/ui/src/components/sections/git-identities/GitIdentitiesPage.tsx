@@ -206,7 +206,7 @@ export const GitIdentitiesPage: React.FC = () => {
                     key={c.key}
                     onClick={() => setColor(c.key)}
                     className={cn(
-                      'w-8 h-8 rounded-lg border-2 transition-all',
+                      'w-8 h-8 rounded-none-none border-2 transition-all',
                       color === c.key
                         ? 'border-foreground scale-110'
                         : 'border-transparent hover:border-border'
@@ -230,7 +230,7 @@ export const GitIdentitiesPage: React.FC = () => {
                       key={i.key}
                       onClick={() => setIcon(i.key)}
                       className={cn(
-                        'w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center',
+                        'w-8 h-8 rounded-none-none border-2 transition-all flex items-center justify-center',
                         icon === i.key
                           ? 'border-primary bg-accent scale-110'
                           : 'border-border hover:border-primary/50'

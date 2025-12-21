@@ -75,7 +75,7 @@ const FileSelector = React.memo<FileSelectorProps>(({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <button className="flex h-8 items-center gap-2 rounded-lg border border-input bg-transparent px-2 typography-ui-label text-foreground outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring">
+                <button className="flex h-8 items-center gap-2 rounded-none-none border border-input bg-transparent px-2 typography-ui-label text-foreground outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring">
                     {selectedFileEntry ? (
                         <div className="flex min-w-0 items-center gap-3">
                             <span className="min-w-0 flex-1 truncate typography-meta">
@@ -467,7 +467,7 @@ export const DiffView: React.FC = () => {
         <div className="flex h-full flex-col overflow-hidden bg-background">
             <div className="flex items-center gap-3 px-3 py-2 bg-background">
                 {!isMobile && (
-                    <div className="flex items-center gap-1 rounded-md px-2 py-1 text-muted-foreground shrink-0">
+                    <div className="flex items-center gap-1 rounded-none-none px-2 py-1 text-muted-foreground shrink-0">
                         <RiGitCommitLine size={16} />
                         <span className="typography-ui-label font-semibold text-foreground">
                             {isLoadingStatus && !status
@@ -488,7 +488,7 @@ export const DiffView: React.FC = () => {
                     <button
                         type="button"
                         onClick={() => setDiffWrapLines(!diffWrapLines)}
-                        className={`flex items-center justify-center size-5 rounded-sm transition-opacity ${
+                        className={`flex items-center justify-center size-5 rounded-none-none transition-opacity ${
                             diffWrapLines
                                 ? 'text-foreground opacity-100'
                                 : 'text-muted-foreground opacity-60 hover:opacity-100'

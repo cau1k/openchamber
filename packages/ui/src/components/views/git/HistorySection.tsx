@@ -55,7 +55,7 @@ export const HistorySection: React.FC<HistorySectionProps> = ({
     <Collapsible
       open={isOpen}
       onOpenChange={setIsOpen}
-      className="rounded-xl border border-border/60 bg-background/70 overflow-hidden"
+      className="rounded-none-none border border-border/60 bg-background/70 overflow-hidden"
     >
       <CollapsibleTrigger className="flex w-full items-center justify-between px-3 h-10 hover:bg-transparent">
         <h3 className="typography-ui-header font-semibold text-foreground">History</h3>

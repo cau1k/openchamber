@@ -116,7 +116,7 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
           )}
           {workingDir && (
             <div className="typography-meta text-muted-foreground mb-2">
-              <span className="font-semibold">Working Directory:</span> <code className="px-1 py-0.5 bg-muted/30 rounded">{workingDir}</code>
+              <span className="font-semibold">Working Directory:</span> <code className="px-1 py-0.5 bg-muted/30 rounded-none">{workingDir}</code>
             </div>
           )}
           {timeout && (
@@ -173,7 +173,7 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
             </div>
           )}
           {changes && (
-            <ScrollableOverlay outerClassName="max-h-[60vh]" className="tool-output-surface p-1 rounded-xl border border-border/20 bg-transparent">
+            <ScrollableOverlay outerClassName="max-h-[60vh]" className="tool-output-surface p-1 rounded-none-none border border-border/20 bg-transparent">
               <DiffPreview diff={changes} syntaxTheme={syntaxTheme} filePath={filePath} />
             </ScrollableOverlay>
           )}
@@ -187,7 +187,7 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
 
       if (content) {
         return (
-          <ScrollableOverlay outerClassName="max-h-[60vh]" className="tool-output-surface p-1 rounded-xl border border-border/20 bg-transparent">
+          <ScrollableOverlay outerClassName="max-h-[60vh]" className="tool-output-surface p-1 rounded-none-none border border-border/20 bg-transparent">
             <WritePreview content={content} syntaxTheme={syntaxTheme} filePath={filePath} />
           </ScrollableOverlay>
         );
@@ -210,10 +210,10 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
             <div className="mb-2">
               <div className="typography-meta text-muted-foreground mb-1">Request:</div>
               <div className="flex items-center gap-2">
-                <span className="typography-meta font-semibold px-1.5 py-0.5 bg-primary/20 text-primary rounded">
+                <span className="typography-meta font-semibold px-1.5 py-0.5 bg-primary/20 text-primary rounded-none">
                   {method}
                 </span>
-                <code className="typography-meta px-2 py-1 bg-muted/30 rounded flex-1 break-all">
+                <code className="typography-meta px-2 py-1 bg-muted/30 rounded-none flex-1 break-all">
                   {url}
                 </code>
               </div>
@@ -286,7 +286,7 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
           <div className="mb-2">
             <div className="typography-meta text-muted-foreground mb-1">Action:</div>
             <ScrollableOverlay outerClassName="max-h-32" className="p-0">
-              <pre className="typography-meta font-mono px-2 py-1 bg-muted/30 rounded whitespace-pre-wrap break-all">
+              <pre className="typography-meta font-mono px-2 py-1 bg-muted/30 rounded-none whitespace-pre-wrap break-all">
                 {String(genericContent)}
               </pre>
             </ScrollableOverlay>
@@ -297,7 +297,7 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
           <div>
             <div className="typography-meta text-muted-foreground mb-1">Details:</div>
             <ScrollableOverlay outerClassName="max-h-32" className="p-0">
-              <pre className="typography-meta font-mono px-2 py-1 bg-muted/30 rounded whitespace-pre-wrap break-all">
+              <pre className="typography-meta font-mono px-2 py-1 bg-muted/30 rounded-none whitespace-pre-wrap break-all">
                 {JSON.stringify(permission.metadata, null, 2)}
               </pre>
             </ScrollableOverlay>
@@ -310,7 +310,7 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
   return (
     <div className="group w-full pt-0 pb-2">
       <div className="chat-column">
-        <div className="-mt-1 border border-border/30 rounded-xl bg-muted/10">
+        <div className="-mt-1 border border-border/30 rounded-none-none bg-muted/10">
           {}
           <div className="px-2 py-1.5 border-b border-border/20 bg-muted/5">
             <div className="flex items-center justify-between">
@@ -391,7 +391,7 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
               if (titleMatchesContent && primaryContent && !shouldHighlight) {
                 return (
                   <div className="mb-3">
-                    <code className="typography-ui-label px-2 py-1 bg-muted/30 rounded block break-all">
+                    <code className="typography-ui-label px-2 py-1 bg-muted/30 rounded-none block break-all">
                       {primaryContent}
                     </code>
                   </div>
@@ -423,7 +423,7 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
               onClick={() => handleResponse('once')}
               disabled={isResponding}
               className={cn(
-                "flex items-center gap-1 px-2 py-1 typography-meta font-medium rounded transition-all",
+                "flex items-center gap-1 px-2 py-1 typography-meta font-medium rounded-none transition-all",
                 "disabled:opacity-50 disabled:cursor-not-allowed"
               )}
               style={{
@@ -445,7 +445,7 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
               onClick={() => handleResponse('always')}
               disabled={isResponding}
               className={cn(
-                "flex items-center gap-1 px-2 py-1 typography-meta font-medium rounded transition-all",
+                "flex items-center gap-1 px-2 py-1 typography-meta font-medium rounded-none transition-all",
                 "disabled:opacity-50 disabled:cursor-not-allowed"
               )}
               style={{
@@ -467,7 +467,7 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
               onClick={() => handleResponse('reject')}
               disabled={isResponding}
               className={cn(
-                "flex items-center gap-1 px-2 py-1 typography-meta font-medium rounded transition-all",
+                "flex items-center gap-1 px-2 py-1 typography-meta font-medium rounded-none transition-all",
                 "disabled:opacity-50 disabled:cursor-not-allowed"
               )}
               style={{
@@ -487,7 +487,7 @@ export const PermissionCard: React.FC<PermissionCardProps> = ({
 
             {isResponding && (
               <div className="ml-auto typography-meta text-muted-foreground">
-                <div className="animate-spin h-3 w-3 border border-primary border-t-transparent rounded-full" />
+                <div className="animate-spin h-3 w-3 border border-primary border-t-transparent rounded-none-none" />
               </div>
             )}
           </div>

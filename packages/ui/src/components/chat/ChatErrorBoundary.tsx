@@ -59,7 +59,7 @@ export class ChatErrorBoundary extends React.Component<ChatErrorBoundaryProps, C
               )}
 
               {this.state.error && (
-                <details className="text-xs font-mono bg-muted p-3 rounded">
+                <details className="text-xs font-mono bg-muted p-3 rounded-none">
                   <summary className="cursor-pointer hover:bg-muted/80">Error details</summary>
                   <pre className="mt-2 overflow-x-auto">
                     {this.state.error.toString()}
