@@ -1,5 +1,9 @@
 /**
  * Terminal routes using bun-pty
+ * 
+ * Optimizations:
+ * - Batched output (debounced every 16ms for 60fps)
+ * - Filtered terminal query responses that cause visual noise
  */
 
 import { Hono } from 'hono'
@@ -11,11 +15,36 @@ interface TerminalSession {
   id: string
   process: PtyProcess
   buffer: string[]
+  pendingData: string
+  flushTimer: ReturnType<typeof setTimeout> | null
   subscribers: Set<WritableStreamDefaultWriter>
   createdAt: number
 }
 
 const sessions = new Map<string, TerminalSession>()
+
+// Batch interval in ms (16ms = ~60fps)
+const BATCH_INTERVAL_MS = 16
+
+// Regex to filter out terminal query responses that cause visual noise
+// These are responses to DA1, DA2, XTVERSION, and color queries
+const TERMINAL_NOISE_PATTERNS = [
+  /\x1b\[\?[\d;]*c/g,           // DA1 response (Primary Device Attributes)
+  /\x1b\[>[\d;]*c/g,            // DA2 response (Secondary Device Attributes)
+  /\x1b\]10;[^\x07\x1b]*[\x07\x1b\\]/g,  // OSC 10 (foreground color response)
+  /\x1b\]11;[^\x07\x1b]*[\x07\x1b\\]/g,  // OSC 11 (background color response)
+  /\x1b\]12;[^\x07\x1b]*[\x07\x1b\\]/g,  // OSC 12 (cursor color response)
+  /\x1bP>[^\x1b]*\x1b\\/g,      // DCS responses
+  /\x1b\[[\d;]*n/g,             // DSR responses
+]
+
+function filterTerminalNoise(data: string): string {
+  let filtered = data
+  for (const pattern of TERMINAL_NOISE_PATTERNS) {
+    filtered = filtered.replace(pattern, '')
+  }
+  return filtered
+}
 
 function generateId(): string {
   return `term_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
@@ -26,6 +55,27 @@ function getDefaultShell(): string {
     return Bun.env.COMSPEC || 'cmd.exe'
   }
   return Bun.env.SHELL || '/bin/bash'
+}
+
+function flushSession(session: TerminalSession): void {
+  if (session.pendingData.length === 0) return
+  
+  const data = session.pendingData
+  session.pendingData = ''
+  session.flushTimer = null
+  
+  // Keep last 1000 chunks in buffer for replay
+  session.buffer.push(data)
+  if (session.buffer.length > 1000) {
+    session.buffer.shift()
+  }
+
+  // Send batched data to all subscribers
+  for (const writer of session.subscribers) {
+    writer.write(`data: ${JSON.stringify({ data })}\n\n`).catch(() => {
+      session.subscribers.delete(writer)
+    })
+  }
 }
 
 export function createTerminalRoutes() {
@@ -56,28 +106,38 @@ export function createTerminalRoutes() {
         id,
         process: ptyProcess,
         buffer: [],
+        pendingData: '',
+        flushTimer: null,
         subscribers: new Set(),
         createdAt: Date.now(),
       }
 
-      // Buffer output and send to subscribers
+      // Batched output - collect data and flush every 16ms
       ptyProcess.onData((data: string) => {
-        // Keep last 1000 lines in buffer
-        session.buffer.push(data)
-        if (session.buffer.length > 1000) {
-          session.buffer.shift()
+        // Filter out terminal query responses that cause visual noise
+        const filtered = filterTerminalNoise(data)
+        if (filtered.length === 0) return
+        
+        session.pendingData += filtered
+        
+        // Debounce: only flush after BATCH_INTERVAL_MS of no new data
+        if (session.flushTimer) {
+          clearTimeout(session.flushTimer)
         }
-
-        // Send to all subscribers
-        for (const writer of session.subscribers) {
-          writer.write(`data: ${JSON.stringify({ data })}\n\n`).catch(() => {
-            session.subscribers.delete(writer)
-          })
-        }
+        session.flushTimer = setTimeout(() => flushSession(session), BATCH_INTERVAL_MS)
       })
 
       ptyProcess.onExit(({ exitCode }: { exitCode: number }) => {
-        // Notify subscribers
+        // Flush any remaining data
+        if (session.flushTimer) {
+          clearTimeout(session.flushTimer)
+          session.flushTimer = null
+        }
+        if (session.pendingData.length > 0) {
+          flushSession(session)
+        }
+        
+        // Notify subscribers of exit
         for (const writer of session.subscribers) {
           writer.write(`data: ${JSON.stringify({ exit: exitCode })}\n\n`).catch(() => {})
           writer.close().catch(() => {})
