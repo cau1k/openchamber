@@ -1,0 +1,7 @@
+[install]
+# Faster installs
+frozen = false
+
+[run]
+# Use Bun's faster runtime
+bun = true

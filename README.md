@@ -101,9 +101,21 @@ Download from [Releases](https://github.com/btriapitsyn/openchamber/releases).
 ## Prerequisites
 
 - [OpenCode CLI](https://opencode.ai) installed
-- Node.js 20+ (for web version)
+- [Bun](https://bun.sh) 1.1+ (for web version)
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+## Building Desktop/VS Code Extensions
+
+The desktop and VS Code extensions are maintained separately and require Node.js + pnpm:
+
+```bash
+# Desktop (Tauri)
+cd packages/desktop && pnpm install && pnpm run build
+
+# VS Code Extension
+cd packages/vscode && pnpm install && pnpm run build
+```
 
 ## Tech Stack
 
