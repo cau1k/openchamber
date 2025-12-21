@@ -1082,6 +1082,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onOpenSettings, scrollToBo
                             onPointerDownCapture={handleTextareaPointerDownCapture}
                             placeholder={currentSessionId ? "# for agents; @ for files; / for commands" : "Select or create a session to start chatting"}
                             disabled={!currentSessionId}
+                            autoComplete="off"
+                            autoCorrect="off"
+                            autoCapitalize="off"
+                            spellCheck={false}
 
                         className={cn(
                             'min-h-[52px] resize-none border-0 px-3 shadow-none rounded-none-t-xl rounded-none-b-none appearance-none focus:shadow-none focus-visible:shadow-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-transparent hover:border-transparent bg-transparent',
