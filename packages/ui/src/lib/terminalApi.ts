@@ -1,9 +1,20 @@
-
+export interface PaneInfo {
+  index: number;
+  active: boolean;
+  pid: number;
+  currentCommand: string;
+  title: string;
+}
 
 export interface TerminalSession {
   sessionId: string;
   cols: number;
   rows: number;
+  workspace?: string;
+  panes?: PaneInfo[];
+  activePaneIndex?: number;
+  isNew?: boolean;
+  persistent?: boolean;
 }
 
 export interface TerminalStreamEvent {
@@ -13,6 +24,8 @@ export interface TerminalStreamEvent {
   signal?: number | null;
   attempt?: number;
   maxAttempts?: number;
+  pane?: number;
+  initial?: boolean;
 }
 
 export interface CreateTerminalOptions {
@@ -49,11 +62,59 @@ export async function createTerminalSession(
   return response.json();
 }
 
+export async function createTerminalPane(
+  sessionId: string,
+  cwd?: string
+): Promise<{ sessionId: string; paneIndex: number; panes: PaneInfo[] }> {
+  const response = await fetch('/api/terminal/pane/create', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId, cwd }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Failed to create pane' }));
+    throw new Error(error.error || 'Failed to create terminal pane');
+  }
+
+  return response.json();
+}
+
+export async function listTerminalPanes(
+  sessionId: string
+): Promise<{ sessionId: string; panes: PaneInfo[] }> {
+  const response = await fetch(`/api/terminal/panes/${sessionId}`);
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Failed to list panes' }));
+    throw new Error(error.error || 'Failed to list terminal panes');
+  }
+
+  return response.json();
+}
+
+export async function killTerminalPane(
+  sessionId: string,
+  paneIndex: number
+): Promise<{ panes?: PaneInfo[]; sessionKilled?: boolean }> {
+  const response = await fetch(`/api/terminal/pane/${sessionId}/${paneIndex}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Failed to kill pane' }));
+    throw new Error(error.error || 'Failed to kill terminal pane');
+  }
+
+  return response.json();
+}
+
 export function connectTerminalStream(
   sessionId: string,
   onEvent: (event: TerminalStreamEvent) => void,
   onError?: (error: Error, fatal?: boolean) => void,
-  options: ConnectStreamOptions = {}
+  options: ConnectStreamOptions = {},
+  paneIndex: number = 0
 ): () => void {
   const {
     maxRetries = 3,
@@ -101,7 +162,7 @@ export function connectTerminalStream(
     }
 
     hasDispatchedOpen = false;
-    eventSource = new EventSource(`/api/terminal/${sessionId}/stream`);
+    eventSource = new EventSource(`/api/terminal/stream/${sessionId}/${paneIndex}`);
 
     connectionTimeoutId = setTimeout(() => {
       if (!hasDispatchedOpen && eventSource?.readyState !== EventSource.OPEN) {
@@ -190,12 +251,13 @@ export function connectTerminalStream(
 
 export async function sendTerminalInput(
   sessionId: string,
-  data: string
+  data: string,
+  paneIndex: number = 0
 ): Promise<void> {
-  const response = await fetch(`/api/terminal/${sessionId}/input`, {
+  const response = await fetch(`/api/terminal/write/${sessionId}/${paneIndex}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: data,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data }),
   });
 
   if (!response.ok) {
@@ -207,9 +269,10 @@ export async function sendTerminalInput(
 export async function resizeTerminal(
   sessionId: string,
   cols: number,
-  rows: number
+  rows: number,
+  paneIndex: number = 0
 ): Promise<void> {
-  const response = await fetch(`/api/terminal/${sessionId}/resize`, {
+  const response = await fetch(`/api/terminal/resize/${sessionId}/${paneIndex}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ cols, rows }),
@@ -222,7 +285,7 @@ export async function resizeTerminal(
 }
 
 export async function closeTerminal(sessionId: string): Promise<void> {
-  const response = await fetch(`/api/terminal/${sessionId}`, {
+  const response = await fetch(`/api/terminal/session/${sessionId}`, {
     method: 'DELETE',
   });
 
@@ -233,10 +296,11 @@ export async function closeTerminal(sessionId: string): Promise<void> {
 }
 
 export async function restartTerminalSession(
-  currentSessionId: string,
+  _currentSessionId: string,
   options: { cwd: string; cols?: number; rows?: number }
 ): Promise<TerminalSession> {
-  const response = await fetch(`/api/terminal/${currentSessionId}/restart`, {
+  // Reset creates a fresh session for the workspace
+  const response = await fetch('/api/terminal/reset', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -258,10 +322,11 @@ export async function forceKillTerminal(options: {
   sessionId?: string;
   cwd?: string;
 }): Promise<void> {
-  const response = await fetch('/api/terminal/force-kill', {
+  // Reset the terminal for the workspace
+  const response = await fetch('/api/terminal/reset', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(options),
+    body: JSON.stringify({ cwd: options.cwd }),
   });
 
   if (!response.ok) {

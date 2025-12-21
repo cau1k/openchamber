@@ -1,10 +1,10 @@
 import React from 'react';
-import { RiAlertLine, RiArrowDownLine, RiArrowGoBackLine, RiArrowLeftLine, RiArrowRightLine, RiArrowUpLine, RiCheckboxCircleLine, RiCircleLine, RiCloseLine, RiCommandLine, RiDeleteBinLine, RiRestartLine } from '@remixicon/react';
+import { RiAddLine, RiAlertLine, RiArrowDownLine, RiArrowDownSLine, RiArrowGoBackLine, RiArrowLeftLine, RiArrowRightLine, RiArrowUpLine, RiCheckboxCircleLine, RiCircleLine, RiCloseLine, RiCommandLine, RiDeleteBinLine, RiRestartLine, RiTerminalLine } from '@remixicon/react';
 
 import { useSessionStore } from '@/stores/useSessionStore';
 import { useDirectoryStore } from '@/stores/useDirectoryStore';
 import { useTerminalStore } from '@/stores/useTerminalStore';
-import { type TerminalStreamEvent } from '@/lib/api/types';
+import { type TerminalStreamEvent, type PaneInfo } from '@/lib/api/types';
 import { useThemeSystem } from '@/contexts/useThemeSystem';
 import { useFontPreferences } from '@/hooks/useFontPreferences';
 import { CODE_FONT_OPTION_MAP, DEFAULT_MONO_FONT } from '@/lib/fontOptions';
@@ -14,6 +14,7 @@ import { ScrollableOverlay } from '@/components/ui/ScrollableOverlay';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/stores/useUIStore';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDeviceInfo } from '@/lib/device';
 import { useRuntimeAPIs } from '@/hooks/useRuntimeAPIs';
 
@@ -114,14 +115,20 @@ export const TerminalView: React.FC = () => {
     const clearTerminalSession = terminalStore.clearTerminalSession;
     const removeTerminalSession = terminalStore.removeTerminalSession;
     const clearBuffer = terminalStore.clearBuffer;
+    const setActivePaneIndex = terminalStore.setActivePaneIndex;
+    const updatePanes = terminalStore.updatePanes;
+    const addPane = terminalStore.addPane;
 
     const terminalState = React.useMemo(() => {
         if (!effectiveDirectory) return undefined;
         return terminalSessions.get(effectiveDirectory);
     }, [terminalSessions, effectiveDirectory]);
     const terminalSessionRef = terminalState?.terminalSessionId ?? null;
-    const bufferChunks = terminalState?.bufferChunks ?? [];
-    const bufferLength = terminalState?.bufferLength ?? 0;
+    const activePaneIndex = terminalState?.activePaneIndex ?? 0;
+    const panes = terminalState?.panes ?? [];
+    const activePane = panes[activePaneIndex];
+    const bufferChunks = activePane?.bufferChunks ?? terminalState?.bufferChunks ?? [];
+    const bufferLength = activePane?.bufferLength ?? terminalState?.bufferLength ?? 0;
     const isConnecting = terminalState?.isConnecting ?? false;
     const terminalSessionId = terminalSessionRef;
 
@@ -173,9 +180,15 @@ export const TerminalView: React.FC = () => {
         [disconnectStream]
     );
 
+    const activePaneIndexRef = React.useRef(activePaneIndex);
+    React.useEffect(() => {
+        activePaneIndexRef.current = activePaneIndex;
+    }, [activePaneIndex]);
+
     const startStream = React.useCallback(
-        (terminalId: string) => {
-            if (activeTerminalIdRef.current === terminalId) {
+        (terminalId: string, paneIndex: number = 0) => {
+            const streamKey = `${terminalId}:${paneIndex}`;
+            if (activeTerminalIdRef.current === streamKey) {
                 return;
             }
 
@@ -205,7 +218,8 @@ export const TerminalView: React.FC = () => {
                             }
                             case 'data': {
                                 if (event.data) {
-                                    appendToBuffer(directory, event.data);
+                                    const targetPane = event.pane ?? activePaneIndexRef.current;
+                                    appendToBuffer(directory, event.data, targetPane);
                                 }
                                 break;
                             }
@@ -213,11 +227,13 @@ export const TerminalView: React.FC = () => {
                                 const exitCode =
                                     typeof event.exitCode === 'number' ? event.exitCode : null;
                                 const signal = typeof event.signal === 'number' ? event.signal : null;
+                                const targetPane = event.pane ?? activePaneIndexRef.current;
                                 appendToBuffer(
                                     directory,
                                     `\r\n[Process exited${
                                         exitCode !== null ? ` with code ${exitCode}` : ''
-                                    }${signal !== null ? ` (signal ${signal})` : ''}]\r\n`
+                                    }${signal !== null ? ` (signal ${signal})` : ''}]\r\n`,
+                                    targetPane
                                 );
                                 clearTerminalSession(directory);
                                 setConnecting(directory, false);
@@ -246,14 +262,15 @@ export const TerminalView: React.FC = () => {
                         }
                     },
                 },
-                STREAM_OPTIONS
+                STREAM_OPTIONS,
+                paneIndex
             );
 
             streamCleanupRef.current = () => {
                 subscription.close();
                 activeTerminalIdRef.current = null;
             };
-            activeTerminalIdRef.current = terminalId;
+            activeTerminalIdRef.current = streamKey;
         },
         [appendToBuffer, clearTerminalSession, disconnectStream, removeTerminalSession, setConnecting, terminal, setConnectionError]
     );
@@ -311,7 +328,8 @@ export const TerminalView: React.FC = () => {
             if (!terminalId || cancelled) return;
 
             terminalIdRef.current = terminalId;
-            startStream(terminalId);
+            const currentPaneIndex = useTerminalStore.getState().getTerminalSession(directory)?.activePaneIndex ?? 0;
+            startStream(terminalId, currentPaneIndex);
         };
 
         void ensureSession();
@@ -333,44 +351,53 @@ export const TerminalView: React.FC = () => {
         terminal,
     ]);
 
-    const handleRestart = React.useCallback(async () => {
+    // "Restart" now creates a new pane (new shell) in the same tmux session
+    const handleNewPane = React.useCallback(async () => {
         if (!effectiveDirectory) return;
         if (isRestarting) return;
+
+        const currentTerminalId = terminalIdRef.current;
+        if (!currentTerminalId || !terminal.createPane) {
+            // Fallback: if no pane support, do nothing
+            return;
+        }
 
         setIsRestarting(true);
         setConnectionError(null);
         setIsFatalError(false);
-        disconnectStream();
-
-        const currentTerminalId = terminalIdRef.current;
 
         try {
-            if (terminal.restartSession && currentTerminalId) {
-                const newSession = await terminal.restartSession(currentTerminalId, {
-                    cwd: effectiveDirectory,
-                });
-                setTerminalSession(effectiveDirectory, newSession);
-                terminalIdRef.current = newSession.sessionId;
-                startStream(newSession.sessionId);
-            } else {
-                if (currentTerminalId) {
-                    try {
-                        await terminal.close(currentTerminalId);
-                    } catch { /* ignored */ }
-                }
-                removeTerminalSession(effectiveDirectory);
-            }
+            const result = await terminal.createPane(currentTerminalId, effectiveDirectory);
+            // Update panes in store
+            updatePanes(effectiveDirectory, result.panes);
+            // Switch to the new pane
+            setActivePaneIndex(effectiveDirectory, result.paneIndex);
+            // Connect to the new pane's stream
+            disconnectStream();
+            startStream(currentTerminalId, result.paneIndex);
         } catch (error) {
             setConnectionError(
-                error instanceof Error ? error.message : 'Failed to restart terminal'
+                error instanceof Error ? error.message : 'Failed to create new pane'
             );
-            setIsFatalError(true);
         } finally {
             setIsRestarting(false);
         }
-    }, [effectiveDirectory, isRestarting, disconnectStream, terminal, setTerminalSession, startStream, removeTerminalSession]);
+    }, [effectiveDirectory, isRestarting, terminal, updatePanes, setActivePaneIndex, disconnectStream, startStream]);
 
-    const handleHardRestart = React.useCallback(async () => {
+    // Switch to a different pane
+    const handleSwitchPane = React.useCallback((paneIndex: number) => {
+        if (!effectiveDirectory || !terminalSessionId) return;
+        if (paneIndex === activePaneIndex) return;
+
+        setActivePaneIndex(effectiveDirectory, paneIndex);
+        disconnectStream();
+        startStream(terminalSessionId, paneIndex);
+        terminalControllerRef.current?.clear();
+        // Re-render with the new pane's buffer
+    }, [effectiveDirectory, terminalSessionId, activePaneIndex, setActivePaneIndex, disconnectStream, startStream]);
+
+    // "Kill" destroys entire session and creates fresh one
+    const handleKillSession = React.useCallback(async () => {
         if (!effectiveDirectory) return;
         if (isRestarting) return;
 
@@ -398,7 +425,11 @@ export const TerminalView: React.FC = () => {
             });
             setTerminalSession(effectiveDirectory, session);
             terminalIdRef.current = session.sessionId;
-            startStream(session.sessionId);
+            // Update panes from the new session
+            if (session.panes) {
+                updatePanes(effectiveDirectory, session.panes);
+            }
+            startStream(session.sessionId, 0);
         } catch (error) {
             setConnectionError(
                 error instanceof Error ? error.message : 'Failed to create terminal'
@@ -408,7 +439,7 @@ export const TerminalView: React.FC = () => {
         } finally {
             setIsRestarting(false);
         }
-    }, [effectiveDirectory, isRestarting, disconnectStream, terminal, removeTerminalSession, clearBuffer, setConnecting, setTerminalSession, startStream]);
+    }, [effectiveDirectory, isRestarting, disconnectStream, terminal, removeTerminalSession, clearBuffer, setConnecting, setTerminalSession, updatePanes, startStream]);
 
     const handleClear = React.useCallback(() => {
         if (!effectiveDirectory) return;
@@ -451,7 +482,7 @@ export const TerminalView: React.FC = () => {
             const terminalId = terminalIdRef.current;
             if (!terminalId) return;
 
-            void terminal.sendInput(terminalId, payload).catch((error) => {
+            void terminal.sendInput(terminalId, payload, activePaneIndexRef.current).catch((error) => {
                 setConnectionError(error instanceof Error ? error.message : 'Failed to send input');
             });
 
@@ -467,8 +498,8 @@ export const TerminalView: React.FC = () => {
         (cols: number, rows: number) => {
             const terminalId = terminalIdRef.current;
             if (!terminalId) return;
-            void terminal.resize({ sessionId: terminalId, cols, rows }).catch(() => {
-
+            void terminal.resize({ sessionId: terminalId, cols, rows, paneIndex: activePaneIndexRef.current }).catch(() => {
+                // ignore resize errors
             });
         },
         [terminal]
@@ -651,7 +682,7 @@ export const TerminalView: React.FC = () => {
             <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
                 <p>No working directory available for this session.</p>
                 <button
-                    onClick={handleRestart}
+                    onClick={handleKillSession}
                     className="rounded-none-none bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
                 >
                     Retry
@@ -683,18 +714,48 @@ export const TerminalView: React.FC = () => {
                             <RiDeleteBinLine size={16} />
                             Clear
                         </Button>
-                        <Button
-                            size="sm"
-                            variant="default"
-                            className="h-7 px-2 py-0"
-                            onClick={handleRestart}
-                            disabled={isRestarting}
-                            title="Restart terminal session"
-                            type="button"
-                        >
-                            <RiRestartLine size={16} className={cn((isConnecting || isRestarting) && 'animate-spin')} />
-                            Restart
-                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2 py-0 gap-1"
+                                    disabled={!terminalSessionId || isConnecting}
+                                    type="button"
+                                >
+                                    <RiTerminalLine size={14} />
+                                    <span>Pane {activePaneIndex + 1}</span>
+                                    {panes.length > 1 && <span className="text-muted-foreground">/{panes.length}</span>}
+                                    <RiArrowDownSLine size={14} />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {panes.map((pane, idx) => (
+                                    <DropdownMenuItem
+                                        key={pane.index}
+                                        onClick={() => handleSwitchPane(idx)}
+                                        className={cn(idx === activePaneIndex && 'bg-accent')}
+                                    >
+                                        <RiTerminalLine size={14} className="mr-2" />
+                                        Pane {idx + 1}
+                                        {pane.info?.currentCommand && (
+                                            <span className="ml-2 text-muted-foreground text-xs truncate max-w-[100px]">
+                                                {pane.info.currentCommand}
+                                            </span>
+                                        )}
+                                    </DropdownMenuItem>
+                                ))}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleNewPane} disabled={isRestarting}>
+                                    <RiAddLine size={14} className="mr-2" />
+                                    New Pane
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleKillSession} disabled={isRestarting} className="text-destructive">
+                                    <RiCloseLine size={14} className="mr-2" />
+                                    Kill Session
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
                 {isMobile ? (
@@ -850,12 +911,12 @@ export const TerminalView: React.FC = () => {
                                 size="sm"
                                 variant="secondary"
                                 className="h-6 px-2 py-0 text-xs"
-                                onClick={handleHardRestart}
+                                onClick={handleKillSession}
                                 disabled={isRestarting}
                                 title="Force kill and create fresh session"
                                 type="button"
                             >
-                                Hard Restart
+                                Kill & Restart
                             </Button>
                         )}
                     </div>

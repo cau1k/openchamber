@@ -29,10 +29,23 @@ export interface RetryPolicy {
   maxDelayMs: number;
 }
 
+export interface PaneInfo {
+  index: number;
+  active: boolean;
+  pid: number;
+  currentCommand: string;
+  title: string;
+}
+
 export interface TerminalSession {
   sessionId: string;
   cols: number;
   rows: number;
+  workspace?: string;
+  panes?: PaneInfo[];
+  activePaneIndex?: number;
+  isNew?: boolean;
+  persistent?: boolean;
 }
 
 export interface TerminalStreamEvent {
@@ -42,6 +55,8 @@ export interface TerminalStreamEvent {
   signal?: number | null;
   attempt?: number;
   maxAttempts?: number;
+  pane?: number;
+  initial?: boolean;
 }
 
 export interface CreateTerminalOptions {
@@ -59,6 +74,7 @@ export interface ResizeTerminalPayload {
   sessionId: string;
   cols: number;
   rows: number;
+  paneIndex?: number;
 }
 
 export interface TerminalHandlers {
@@ -71,14 +87,33 @@ export interface ForceKillOptions {
   cwd?: string;
 }
 
+export interface CreatePaneResult {
+  sessionId: string;
+  paneIndex: number;
+  panes: PaneInfo[];
+}
+
+export interface ListPanesResult {
+  sessionId: string;
+  panes: PaneInfo[];
+}
+
+export interface KillPaneResult {
+  panes?: PaneInfo[];
+  sessionKilled?: boolean;
+}
+
 export interface TerminalAPI {
   createSession(options: CreateTerminalOptions): Promise<TerminalSession>;
-  connect(sessionId: string, handlers: TerminalHandlers, options?: TerminalStreamOptions): Subscription;
-  sendInput(sessionId: string, input: string): Promise<void>;
+  connect(sessionId: string, handlers: TerminalHandlers, options?: TerminalStreamOptions, paneIndex?: number): Subscription;
+  sendInput(sessionId: string, input: string, paneIndex?: number): Promise<void>;
   resize(payload: ResizeTerminalPayload): Promise<void>;
   close(sessionId: string): Promise<void>;
   restartSession?(currentSessionId: string, options: CreateTerminalOptions): Promise<TerminalSession>;
   forceKill?(options: ForceKillOptions): Promise<void>;
+  createPane?(sessionId: string, cwd?: string): Promise<CreatePaneResult>;
+  listPanes?(sessionId: string): Promise<ListPanesResult>;
+  killPane?(sessionId: string, paneIndex: number): Promise<KillPaneResult>;
 }
 
 export interface GitStatusFile {

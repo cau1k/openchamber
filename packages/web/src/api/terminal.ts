@@ -1,6 +1,9 @@
 import {
   connectTerminalStream,
   createTerminalSession,
+  createTerminalPane,
+  listTerminalPanes,
+  killTerminalPane,
   resizeTerminal,
   sendTerminalInput,
   closeTerminal,
@@ -15,6 +18,9 @@ import type {
   ResizeTerminalPayload,
   TerminalSession,
   ForceKillOptions,
+  CreatePaneResult,
+  ListPanesResult,
+  KillPaneResult,
 } from '@openchamber/ui/lib/api/types';
 
 const getRetryPolicy = (options?: TerminalStreamOptions) => {
@@ -32,12 +38,13 @@ export const createWebTerminalAPI = (): TerminalAPI => ({
     return createTerminalSession(options);
   },
 
-  connect(sessionId: string, handlers: TerminalHandlers, options?: TerminalStreamOptions) {
+  connect(sessionId: string, handlers: TerminalHandlers, options?: TerminalStreamOptions, paneIndex?: number) {
     const unsubscribe = connectTerminalStream(
       sessionId,
       handlers.onEvent,
       handlers.onError,
-      getRetryPolicy(options)
+      getRetryPolicy(options),
+      paneIndex ?? 0
     );
 
     return {
@@ -45,12 +52,12 @@ export const createWebTerminalAPI = (): TerminalAPI => ({
     };
   },
 
-  async sendInput(sessionId: string, input: string): Promise<void> {
-    await sendTerminalInput(sessionId, input);
+  async sendInput(sessionId: string, input: string, paneIndex?: number): Promise<void> {
+    await sendTerminalInput(sessionId, input, paneIndex ?? 0);
   },
 
   async resize(payload: ResizeTerminalPayload): Promise<void> {
-    await resizeTerminal(payload.sessionId, payload.cols, payload.rows);
+    await resizeTerminal(payload.sessionId, payload.cols, payload.rows, payload.paneIndex ?? 0);
   },
 
   async close(sessionId: string): Promise<void> {
@@ -70,5 +77,17 @@ export const createWebTerminalAPI = (): TerminalAPI => ({
 
   async forceKill(options: ForceKillOptions): Promise<void> {
     await forceKillTerminal(options);
+  },
+
+  async createPane(sessionId: string, cwd?: string): Promise<CreatePaneResult> {
+    return createTerminalPane(sessionId, cwd);
+  },
+
+  async listPanes(sessionId: string): Promise<ListPanesResult> {
+    return listTerminalPanes(sessionId);
+  },
+
+  async killPane(sessionId: string, paneIndex: number): Promise<KillPaneResult> {
+    return killTerminalPane(sessionId, paneIndex);
   },
 });
