@@ -1224,7 +1224,13 @@ export const useMessageStore = create<MessageStore>()(
                                 },
                                 animationSettled: actualRole === "assistant" ? false : undefined,
                                 streaming: actualRole === "assistant" ? true : undefined,
-                            } as Message;
+                                // Required fields for AssistantMessage type
+                                parentID: "",
+                                mode: "build" as const,
+                                path: { cwd: "", root: "" },
+                                cost: 0,
+                                tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+                            } as unknown as Message;
 
                             const placeholderMessage = {
                                 info: placeholderInfo,

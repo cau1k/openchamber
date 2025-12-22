@@ -10,6 +10,18 @@ import { getDataDir } from '../lib/paths'
 import { getOpenCodeWorkingDirectory, restartOpenCode } from '../lib/opencode'
 import path from 'path'
 import { stat } from 'fs/promises'
+import { homedir } from 'os'
+
+// Expand tilde (~) to home directory
+function expandTilde(p: string): string {
+  if (p.startsWith('~/')) {
+    return path.join(homedir(), p.slice(2))
+  }
+  if (p === '~') {
+    return homedir()
+  }
+  return p
+}
 
 const MODELS_DEV_URL = 'https://models.dev/api.json'
 
@@ -115,7 +127,8 @@ export function createOpenchamberRoutes() {
         return c.json({ error: 'Path is required' }, 400)
       }
 
-      const resolvedPath = path.resolve(requestedPath)
+      // Expand tilde and resolve to absolute path
+      const resolvedPath = path.resolve(expandTilde(requestedPath))
       
       // Validate path exists and is a directory
       let stats
