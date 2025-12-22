@@ -62,10 +62,60 @@ async function tmuxSessionExists(name: string): Promise<boolean> {
   }
 }
 
+// Get the active window index in a session (tmux windows can start at 1, not 0)
+async function getWindowIndex(tmuxName: string): Promise<number> {
+  try {
+    const output = await $`tmux list-windows -t ${tmuxName} -F "#{window_index}"`.text()
+    const indices = output.split('\n').filter(Boolean).map(Number)
+    return indices[0] ?? 0
+  } catch {
+    return 0
+  }
+}
+
+// Build proper tmux target for session:window
+async function buildWindowTarget(tmuxName: string): Promise<string> {
+  const windowIndex = await getWindowIndex(tmuxName)
+  return `${tmuxName}:${windowIndex}`
+}
+
+// Get actual pane indices in a session (may not start at 0)
+async function getActualPaneIndices(tmuxName: string): Promise<number[]> {
+  try {
+    const target = await buildWindowTarget(tmuxName)
+    const output = await $`tmux list-panes -t ${target} -F "#{pane_index}"`.text()
+    return output.split('\n').filter(Boolean).map(Number).sort((a, b) => a - b)
+  } catch {
+    return []
+  }
+}
+
+// Translate client's 0-indexed pane request to actual tmux pane index
+async function translatePaneIndex(tmuxName: string, clientPaneIndex: number): Promise<number> {
+  const actualIndices = await getActualPaneIndices(tmuxName)
+  if (actualIndices.length === 0) {
+    return clientPaneIndex // fallback
+  }
+  // Map client index (0, 1, 2...) to actual tmux indices (could be 1, 2, 3...)
+  if (clientPaneIndex < actualIndices.length) {
+    return actualIndices[clientPaneIndex]
+  }
+  // Client requested a pane beyond what exists
+  return clientPaneIndex
+}
+
+// Build proper tmux target: session:window.pane (with index translation)
+async function buildPaneTarget(tmuxName: string, clientPaneIndex: number): Promise<string> {
+  const windowIndex = await getWindowIndex(tmuxName)
+  const actualPaneIndex = await translatePaneIndex(tmuxName, clientPaneIndex)
+  return `${tmuxName}:${windowIndex}.${actualPaneIndex}`
+}
+
 // Get pane count in session
 async function getPaneCount(tmuxName: string): Promise<number> {
   try {
-    const output = await $`tmux list-panes -t ${tmuxName} -F "#{pane_index}"`.text()
+    const target = await buildWindowTarget(tmuxName)
+    const output = await $`tmux list-panes -t ${target} -F "#{pane_index}"`.text()
     return output.split('\n').filter(Boolean).length
   } catch {
     return 0
@@ -83,7 +133,8 @@ interface PaneInfo {
 
 async function listPanes(tmuxName: string): Promise<PaneInfo[]> {
   try {
-    const output = await $`tmux list-panes -t ${tmuxName} -F "#{pane_index}:#{pane_active}:#{pane_pid}:#{pane_current_command}:#{pane_title}"`.text()
+    const target = await buildWindowTarget(tmuxName)
+    const output = await $`tmux list-panes -t ${target} -F "#{pane_index}:#{pane_active}:#{pane_pid}:#{pane_current_command}:#{pane_title}"`.text()
     return output
       .split('\n')
       .filter(Boolean)
@@ -102,10 +153,15 @@ async function listPanes(tmuxName: string): Promise<PaneInfo[]> {
   }
 }
 
-// Create tmux session (first pane)
+// Create tmux session (first pane) - force 0-based indexing
 async function createTmuxSession(name: string, workspace: string, cols: number, rows: number): Promise<void> {
   const shell = getDefaultShell()
   await $`tmux new-session -d -s ${name} -x ${cols} -y ${rows} -c ${workspace} ${shell}`.quiet()
+  // Force 0-based indexing for this session (override user's tmux.conf)
+  await $`tmux set-option -t ${name} base-index 0`.quiet()
+  await $`tmux set-option -t ${name} pane-base-index 0`.quiet()
+  // Renumber windows to start from 0
+  await $`tmux move-window -t ${name}:0`.quiet()
 }
 
 // Create new pane in existing session
@@ -121,7 +177,8 @@ async function createPane(tmuxName: string, workspace: string): Promise<number> 
 // Kill specific pane
 async function killPane(tmuxName: string, paneIndex: number): Promise<void> {
   try {
-    await $`tmux kill-pane -t ${tmuxName}:0.${paneIndex}`.quiet()
+    const target = await buildPaneTarget(tmuxName, paneIndex)
+    await $`tmux kill-pane -t ${target}`.quiet()
   } catch {
     // Pane might already be dead
   }
@@ -139,7 +196,8 @@ async function killTmuxSession(name: string): Promise<void> {
 // Resize pane
 async function resizePane(tmuxName: string, paneIndex: number, cols: number, rows: number): Promise<void> {
   try {
-    await $`tmux resize-pane -t ${tmuxName}:0.${paneIndex} -x ${cols} -y ${rows}`.quiet()
+    const target = await buildPaneTarget(tmuxName, paneIndex)
+    await $`tmux resize-pane -t ${target} -x ${cols} -y ${rows}`.quiet()
   } catch {
     // Ignore resize errors
   }
@@ -148,7 +206,8 @@ async function resizePane(tmuxName: string, paneIndex: number, cols: number, row
 // Send input to specific pane
 async function sendToPane(tmuxName: string, paneIndex: number, data: string): Promise<void> {
   try {
-    await $`tmux send-keys -t ${tmuxName}:0.${paneIndex} -l ${data}`.quiet()
+    const target = await buildPaneTarget(tmuxName, paneIndex)
+    await $`tmux send-keys -t ${target} -l ${data}`.quiet()
   } catch (error) {
     // Check if session/pane exists before throwing
     const exists = await tmuxSessionExists(tmuxName)
@@ -166,7 +225,8 @@ async function sendToPane(tmuxName: string, paneIndex: number, data: string): Pr
 // Capture pane content
 async function capturePane(tmuxName: string, paneIndex: number, lines: number = 500): Promise<string> {
   try {
-    const output = await $`tmux capture-pane -t ${tmuxName}:0.${paneIndex} -p -S -${lines}`.text()
+    const target = await buildPaneTarget(tmuxName, paneIndex)
+    const output = await $`tmux capture-pane -t ${target} -p -S -${lines}`.text()
     return output
   } catch {
     return ''
@@ -208,14 +268,16 @@ function flushPaneData(tracker: TmuxSessionTracker, paneIndex: number): void {
   }
 }
 
-// Start streaming for a specific pane
-function startPaneStream(tracker: TmuxSessionTracker, paneIndex: number): void {
+// Start streaming for a specific pane (async to get window index)
+async function startPaneStream(tracker: TmuxSessionTracker, paneIndex: number): Promise<void> {
   if (tracker.streamProcs.has(paneIndex)) return
 
+  const target = await buildPaneTarget(tracker.tmuxName, paneIndex)
+  
   // Use script to capture PTY output properly
   const streamProc = Bun.spawn([
     'bash', '-c',
-    `tmux pipe-pane -t "${tracker.tmuxName}:0.${paneIndex}" -O "cat" && sleep infinity`
+    `tmux pipe-pane -t "${target}" -O "cat" && sleep infinity`
   ], {
     stdout: 'pipe',
     stderr: 'pipe',
