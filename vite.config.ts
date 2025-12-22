@@ -25,6 +25,7 @@ export default defineConfig({
     include: ['@opencode-ai/sdk'],
   },
   build: {
+    sourcemap: true,
     chunkSizeWarningLimit: 1200,
     rollupOptions: {
       external: ['node:child_process', 'node:fs', 'node:path', 'node:url'],

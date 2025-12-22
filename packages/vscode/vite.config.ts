@@ -26,6 +26,7 @@ export default defineConfig({
     include: ['@opencode-ai/sdk'],
   },
   build: {
+    sourcemap: true,
     outDir: path.resolve(__dirname, 'dist/webview'),
     emptyOutDir: true,
     rollupOptions: {
