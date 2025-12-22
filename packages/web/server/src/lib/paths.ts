@@ -55,19 +55,6 @@ export async function resolveDirectory(
     return { error: { status: 400, message: 'directory required' } }
   }
 
-  const homeDir = homedir()
-  const homeBase = homeDir.split('/').filter(Boolean).pop()
-  if (homeBase && (selected === `~/${homeBase}` || selected.startsWith(`~/${homeBase}/`))) {
-    return {
-      error: {
-        status: 400,
-        message: 'invalid directory path: do not include home directory after ~',
-        raw: selected,
-        resolved: `${homeDir}/${selected.slice(homeBase.length + 3)}`,
-      },
-    }
-  }
-
   const resolved = resolve(expandTilde(selected))
 
   if (options.requireExists) {
