@@ -3,8 +3,19 @@
  */
 
 import { Hono } from 'hono'
-import { join } from 'path'
+import { join, resolve } from 'path'
 import { homedir } from 'os'
+
+// Expand tilde (~) to home directory
+function expandTilde(p: string): string {
+  if (p.startsWith('~/')) {
+    return join(homedir(), p.slice(2))
+  }
+  if (p === '~') {
+    return homedir()
+  }
+  return p
+}
 
 export function createFileRoutes() {
   const files = new Hono()
@@ -60,7 +71,8 @@ export function createFileRoutes() {
 
   // List directory
   files.get('/list', async (c) => {
-    const dirPath = c.req.query('path') || homedir()
+    const rawPath = c.req.query('path') || homedir()
+    const dirPath = resolve(expandTilde(rawPath))
     
     try {
       const glob = new Bun.Glob('*')

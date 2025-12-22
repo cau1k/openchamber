@@ -1,47 +1,81 @@
 /**
  * OpenCode process management using Bun-native APIs
+ * Uses globalThis to persist state across HMR reloads
  */
 
 import { $ } from 'bun'
 import { homedir } from 'os'
 
-let openCodePort: number | null = null
-let openCodeProcess: ReturnType<typeof Bun.spawn> | null = null
-// Global working directory state - tracks what directory OpenCode is running in
-let openCodeWorkingDirectory: string = homedir()
+// State persisted across HMR via globalThis
+type OpenCodeState = {
+  port: number | null
+  proc: ReturnType<typeof Bun.spawn> | null
+  workdir: string
+}
+
+const globalState = globalThis as {
+  __openCodeState?: OpenCodeState
+}
+
+// Initialize or reuse existing state (survives HMR)
+const state: OpenCodeState = globalState.__openCodeState ?? {
+  port: null,
+  proc: null,
+  workdir: homedir(),
+}
+globalState.__openCodeState = state
 
 export function getOpenCodePort(): number | null {
-  return openCodePort
+  return state.port
 }
 
 export function setOpenCodePort(port: number): void {
-  openCodePort = port
+  state.port = port
 }
 
 export function getOpenCodeWorkingDirectory(): string {
-  return openCodeWorkingDirectory
+  return state.workdir
 }
 
 export function setOpenCodeWorkingDirectory(dir: string): void {
-  openCodeWorkingDirectory = dir
+  state.workdir = dir
 }
 
 export async function ensureOpenCodeRunning(workdir: string): Promise<number> {
   // Check if port is provided via environment
   const envPort = Bun.env.OPENCODE_PORT
   if (envPort) {
-    openCodePort = parseInt(envPort, 10)
-    console.log(`[opencode] Using port from environment: ${openCodePort}`)
-    return openCodePort
+    state.port = parseInt(envPort, 10)
+    console.log(`[opencode] Using port from environment: ${state.port}`)
+    return state.port
+  }
+
+  // If we already have a running process from before HMR, verify it's still alive
+  if (state.proc && state.port) {
+    try {
+      const response = await fetch(`http://127.0.0.1:${state.port}/session`, {
+        signal: AbortSignal.timeout(2000)
+      }).catch(() => null)
+      
+      if (response?.ok) {
+        console.log(`[opencode] Reusing existing instance on port ${state.port}`)
+        return state.port
+      }
+    } catch {
+      // Process died, will restart
+    }
+    // Process reference exists but not responding - clean up
+    state.proc = null
+    state.port = null
   }
 
   // Check if opencode is already running by looking for its port
   try {
     const existingPort = await detectExistingOpenCode(workdir)
     if (existingPort) {
-      openCodePort = existingPort
-      console.log(`[opencode] Found existing instance on port ${openCodePort}`)
-      return openCodePort
+      state.port = existingPort
+      console.log(`[opencode] Found existing instance on port ${state.port}`)
+      return state.port
     }
   } catch {
     // No existing instance, will start new one
@@ -81,7 +115,7 @@ async function startOpenCode(workdir: string): Promise<number> {
   console.log(`[opencode] Starting in ${workdir}...`)
   
   // Use dynamic port assignment
-  openCodeProcess = Bun.spawn(['opencode', 'serve', '--port', '0'], {
+  state.proc = Bun.spawn(['opencode', 'serve', '--port', '0'], {
     cwd: workdir,
     stdout: 'pipe',
     stderr: 'pipe',
@@ -92,8 +126,8 @@ async function startOpenCode(workdir: string): Promise<number> {
   })
 
   // Wait for port detection from stdout
-  const port = await waitForPort(openCodeProcess)
-  openCodePort = port
+  const port = await waitForPort(state.proc)
+  state.port = port
   
   console.log(`[opencode] Started on port ${port}`)
   return port
@@ -146,10 +180,11 @@ async function waitForPort(proc: ReturnType<typeof Bun.spawn>): Promise<number> 
 }
 
 export async function stopOpenCode(): Promise<void> {
-  if (openCodeProcess) {
-    openCodeProcess.kill()
-    openCodeProcess = null
-    openCodePort = null
+  if (state.proc) {
+    console.log(`[opencode] Stopping process...`)
+    state.proc.kill()
+    state.proc = null
+    state.port = null
   }
 }
 
@@ -160,18 +195,42 @@ export async function stopOpenCode(): Promise<void> {
 export async function restartOpenCode(newWorkdir: string): Promise<number> {
   console.log(`[opencode] Restarting with new directory: ${newWorkdir}`)
   
-  // Check if directory actually changed
-  if (openCodeWorkingDirectory === newWorkdir && openCodePort) {
-    console.log(`[opencode] Directory unchanged, skipping restart`)
-    return openCodePort
+  // Check if directory actually changed and process is healthy
+  if (state.workdir === newWorkdir && state.port && state.proc) {
+    try {
+      const response = await fetch(`http://127.0.0.1:${state.port}/session`, {
+        signal: AbortSignal.timeout(2000)
+      }).catch(() => null)
+      
+      if (response?.ok) {
+        console.log(`[opencode] Directory unchanged and process healthy, skipping restart`)
+        return state.port
+      }
+    } catch {
+      // Process not responding, will restart
+    }
   }
   
   // Stop existing process
   await stopOpenCode()
   
   // Update tracked directory
-  openCodeWorkingDirectory = newWorkdir
+  state.workdir = newWorkdir
   
   // Start with new directory
   return startOpenCode(newWorkdir)
+}
+
+/**
+ * Kill all orphaned opencode processes (dev cleanup)
+ * Use sparingly - only for cleaning up after crashes/bugs
+ */
+export async function killOrphanedOpenCodeProcesses(): Promise<void> {
+  try {
+    // Only kill processes running with --port 0 (dynamically assigned)
+    await $`pkill -f "opencode serve --port 0"`.quiet()
+    console.log(`[opencode] Killed orphaned processes`)
+  } catch {
+    // No processes to kill or pkill failed - that's fine
+  }
 }

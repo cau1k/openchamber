@@ -19,7 +19,7 @@ import { createTerminalRoutes } from './routes/terminal'
 import { createSettingsRoutes } from './routes/settings'
 import { createConfigRoutes } from './routes/config'
 import { createOpenchamberRoutes } from './routes/openchamber'
-import { getOpenCodePort, ensureOpenCodeRunning, setOpenCodeWorkingDirectory } from './lib/opencode'
+import { ensureOpenCodeRunning, setOpenCodeWorkingDirectory, stopOpenCode } from './lib/opencode'
 import { getDataDir, getDistDir } from './lib/paths'
 
 // Track active server for graceful HMR restart
@@ -108,15 +108,17 @@ async function main() {
   
   console.log(`[openchamber] Server running at http://localhost:${server.port}`)
   
-  // Graceful shutdown
-  process.on('SIGINT', () => {
+  // Graceful shutdown - stop OpenCode too
+  process.on('SIGINT', async () => {
     console.log('\n[openchamber] Shutting down...')
+    await stopOpenCode()
     server.stop()
     process.exit(0)
   })
   
-  process.on('SIGTERM', () => {
+  process.on('SIGTERM', async () => {
     console.log('\n[openchamber] Shutting down...')
+    await stopOpenCode()
     server.stop()
     process.exit(0)
   })
@@ -163,8 +165,9 @@ export async function startWebUiServer(options: ServerOptions): Promise<void> {
   console.log(`[openchamber] Server running at http://localhost:${server.port}`);
   
   if (options.attachSignals !== false) {
-    const shutdown = () => {
+    const shutdown = async () => {
       console.log('\n[openchamber] Shutting down...');
+      await stopOpenCode();
       server.stop(true);
       activeServer = null;
       if (options.exitOnShutdown !== false) {
