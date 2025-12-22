@@ -56,6 +56,14 @@ const normalizePath = (value: string) => {
   return value.replace(/\/+$/, "");
 };
 
+const canTildeHome = (normalizedHome: string) => {
+  if (normalizedHome === "/") {
+    return false;
+  }
+  const segments = normalizedHome.split("/").filter(Boolean);
+  return segments.length >= 2;
+};
+
 export function formatPathForDisplay(path: string | null | undefined, homeDirectory?: string | null): string {
   if (!path) {
     return "";
@@ -68,7 +76,7 @@ export function formatPathForDisplay(path: string | null | undefined, homeDirect
 
   const normalizedHome = homeDirectory ? normalizePath(homeDirectory) : undefined;
 
-  if (normalizedHome && normalizedHome !== "/") {
+  if (normalizedHome && canTildeHome(normalizedHome)) {
     if (normalizedPath === normalizedHome) {
       return "~";
     }

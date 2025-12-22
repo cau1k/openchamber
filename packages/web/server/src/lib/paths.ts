@@ -14,14 +14,33 @@ export interface DirectoryResolutionError {
   details?: string
 }
 
-export function expandTilde(input: string): string {
-  if (input.startsWith('~/')) {
-    return join(homedir(), input.slice(2))
+const normalizeTildeInput = (input: string, homeDir: string) => {
+  const base = homeDir.split('/').filter(Boolean).pop()
+  if (!base) {
+    return input
   }
-  if (input === '~') {
-    return homedir()
+
+  if (input === `~/${base}`) {
+    return '~'
   }
+
+  if (input.startsWith(`~/${base}/`)) {
+    return `~/${input.slice(base.length + 3)}`
+  }
+
   return input
+}
+
+export function expandTilde(input: string): string {
+  const homeDir = homedir()
+  const normalized = normalizeTildeInput(input, homeDir)
+  if (normalized.startsWith('~/')) {
+    return join(homeDir, normalized.slice(2))
+  }
+  if (normalized === '~') {
+    return homeDir
+  }
+  return normalized
 }
 
 export async function resolveDirectory(
@@ -34,6 +53,19 @@ export async function resolveDirectory(
 
   if (!selected) {
     return { error: { status: 400, message: 'directory required' } }
+  }
+
+  const homeDir = homedir()
+  const homeBase = homeDir.split('/').filter(Boolean).pop()
+  if (homeBase && (selected === `~/${homeBase}` || selected.startsWith(`~/${homeBase}/`))) {
+    return {
+      error: {
+        status: 400,
+        message: 'invalid directory path: do not include home directory after ~',
+        raw: selected,
+        resolved: `${homeDir}/${selected.slice(homeBase.length + 3)}`,
+      },
+    }
   }
 
   const resolved = resolve(expandTilde(selected))

@@ -150,16 +150,36 @@ export const DirectoryExplorerDialog: React.FC<DirectoryExplorerDialogProps> = (
     isConfirming,
   ]);
 
+  const expandTildeInput = React.useCallback((value: string) => {
+    if (!homeDirectory) {
+      return value;
+    }
+
+    if (value === '~') {
+      return homeDirectory;
+    }
+
+    if (value.startsWith('~/')) {
+      const homeBase = homeDirectory.split('/').filter(Boolean).pop();
+      if (homeBase && value.startsWith(`~/${homeBase}/`)) {
+        return `${homeDirectory}/${value.slice(homeBase.length + 3)}`;
+      }
+      if (homeBase && value === `~/${homeBase}`) {
+        return homeDirectory;
+      }
+      return `${homeDirectory}/${value.slice(2)}`;
+    }
+
+    return value;
+  }, [homeDirectory]);
+
   const handleConfirm = React.useCallback(async () => {
     const rawPath = pathInputValue.trim() || pendingPath;
     if (!rawPath) {
       return;
     }
-    const resolvedPath = rawPath.startsWith('~') && homeDirectory
-      ? rawPath.replace(/^~/, homeDirectory)
-      : rawPath;
-    await finalizeSelection(resolvedPath);
-  }, [finalizeSelection, pathInputValue, pendingPath, homeDirectory]);
+    await finalizeSelection(expandTildeInput(rawPath));
+  }, [expandTildeInput, finalizeSelection, pathInputValue, pendingPath]);
 
   const handleSelectPath = React.useCallback((path: string) => {
     setPendingPath(path);
@@ -180,13 +200,9 @@ export const DirectoryExplorerDialog: React.FC<DirectoryExplorerDialogProps> = (
     setHasUserSelection(true);
     // Update pending path if it looks like a valid path
     if (value.startsWith('/') || value.startsWith('~')) {
-      // Expand ~ to home directory
-      const expandedPath = value.startsWith('~') && homeDirectory
-        ? value.replace(/^~/, homeDirectory)
-        : value;
-      setPendingPath(expandedPath);
+      setPendingPath(expandTildeInput(value));
     }
-  }, [homeDirectory]);
+  }, [expandTildeInput]);
 
   const handlePathInputKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
