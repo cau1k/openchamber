@@ -7,7 +7,9 @@
 
 import { Hono } from 'hono'
 import { getDataDir } from '../lib/paths'
+import { getOpenCodeWorkingDirectory, restartOpenCode } from '../lib/opencode'
 import path from 'path'
+import { stat } from 'fs/promises'
 
 const MODELS_DEV_URL = 'https://models.dev/api.json'
 
@@ -101,6 +103,64 @@ export function createOpenchamberRoutes() {
       console.error('[openchamber] Failed to save pinned directories:', error)
       return c.json({ error: 'Failed to save pinned directories' }, 500)
     }
+  })
+
+  // Directory management - update OpenCode working directory
+  router.post('/directory', async (c) => {
+    try {
+      const body = await c.req.json()
+      const requestedPath = typeof body?.path === 'string' ? body.path.trim() : ''
+      
+      if (!requestedPath) {
+        return c.json({ error: 'Path is required' }, 400)
+      }
+
+      const resolvedPath = path.resolve(requestedPath)
+      
+      // Validate path exists and is a directory
+      let stats
+      try {
+        stats = await stat(resolvedPath)
+      } catch (error: unknown) {
+        const err = error as NodeJS.ErrnoException
+        if (err.code === 'ENOENT') {
+          return c.json({ error: 'Path does not exist' }, 400)
+        }
+        if (err.code === 'EACCES') {
+          return c.json({ error: 'Permission denied' }, 403)
+        }
+        throw error
+      }
+
+      if (!stats.isDirectory()) {
+        return c.json({ error: 'Specified path is not a directory' }, 400)
+      }
+
+      // Check if directory actually changed
+      const currentDir = getOpenCodeWorkingDirectory()
+      if (currentDir === resolvedPath) {
+        return c.json({ success: true, restarted: false, path: resolvedPath })
+      }
+
+      // Restart OpenCode with new directory
+      await restartOpenCode(resolvedPath)
+
+      console.log(`[openchamber] Working directory changed to: ${resolvedPath}`)
+      
+      return c.json({
+        success: true,
+        restarted: true,
+        path: resolvedPath
+      })
+    } catch (error) {
+      console.error('[openchamber] Failed to update working directory:', error)
+      return c.json({ error: 'Failed to update working directory' }, 500)
+    }
+  })
+
+  // Get current working directory
+  router.get('/directory', (c) => {
+    return c.json({ path: getOpenCodeWorkingDirectory() })
   })
 
   return router

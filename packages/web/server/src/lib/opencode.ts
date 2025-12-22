@@ -3,9 +3,12 @@
  */
 
 import { $ } from 'bun'
+import { homedir } from 'os'
 
 let openCodePort: number | null = null
 let openCodeProcess: ReturnType<typeof Bun.spawn> | null = null
+// Global working directory state - tracks what directory OpenCode is running in
+let openCodeWorkingDirectory: string = homedir()
 
 export function getOpenCodePort(): number | null {
   return openCodePort
@@ -13,6 +16,14 @@ export function getOpenCodePort(): number | null {
 
 export function setOpenCodePort(port: number): void {
   openCodePort = port
+}
+
+export function getOpenCodeWorkingDirectory(): string {
+  return openCodeWorkingDirectory
+}
+
+export function setOpenCodeWorkingDirectory(dir: string): void {
+  openCodeWorkingDirectory = dir
 }
 
 export async function ensureOpenCodeRunning(workdir: string): Promise<number> {
@@ -140,4 +151,27 @@ export async function stopOpenCode(): Promise<void> {
     openCodeProcess = null
     openCodePort = null
   }
+}
+
+/**
+ * Restart OpenCode with a new working directory
+ * Called when user switches directories in UI
+ */
+export async function restartOpenCode(newWorkdir: string): Promise<number> {
+  console.log(`[opencode] Restarting with new directory: ${newWorkdir}`)
+  
+  // Check if directory actually changed
+  if (openCodeWorkingDirectory === newWorkdir && openCodePort) {
+    console.log(`[opencode] Directory unchanged, skipping restart`)
+    return openCodePort
+  }
+  
+  // Stop existing process
+  await stopOpenCode()
+  
+  // Update tracked directory
+  openCodeWorkingDirectory = newWorkdir
+  
+  // Start with new directory
+  return startOpenCode(newWorkdir)
 }

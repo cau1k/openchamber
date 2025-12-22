@@ -19,7 +19,7 @@ import { createTerminalRoutes } from './routes/terminal'
 import { createSettingsRoutes } from './routes/settings'
 import { createConfigRoutes } from './routes/config'
 import { createOpenchamberRoutes } from './routes/openchamber'
-import { getOpenCodePort, ensureOpenCodeRunning } from './lib/opencode'
+import { getOpenCodePort, ensureOpenCodeRunning, setOpenCodeWorkingDirectory } from './lib/opencode'
 import { getDataDir, getDistDir } from './lib/paths'
 
 // Track active server for graceful HMR restart
@@ -46,6 +46,7 @@ app.route('/api/terminal', createTerminalRoutes())
 app.route('/api/settings', createSettingsRoutes())
 app.route('/api/config', createConfigRoutes())
 app.route('/api/openchamber', createOpenchamberRoutes())
+app.route('/api/opencode', createOpenchamberRoutes())  // client calls /api/opencode/directory
 
 // OpenCode API proxy - must be after specific routes
 app.all('/api/*', createApiProxy())
@@ -136,6 +137,9 @@ export async function startWebUiServer(options: ServerOptions): Promise<void> {
   console.log(`[openchamber] Starting server...`);
   console.log(`[openchamber] Work directory: ${workdir}`);
   console.log(`[openchamber] Data directory: ${getDataDir()}`);
+  
+  // Initialize working directory state before starting OpenCode
+  setOpenCodeWorkingDirectory(workdir);
   
   // Ensure OpenCode is running
   const openCodePort = await ensureOpenCodeRunning(workdir);

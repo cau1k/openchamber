@@ -13,6 +13,7 @@
 import { Hono } from 'hono'
 import { $ } from 'bun'
 import { createHash } from 'crypto'
+import { getOpenCodeWorkingDirectory } from '../lib/opencode'
 
 interface StreamSubscriber {
   writer: WritableStreamDefaultWriter
@@ -146,7 +147,20 @@ async function resizePane(tmuxName: string, paneIndex: number, cols: number, row
 
 // Send input to specific pane
 async function sendToPane(tmuxName: string, paneIndex: number, data: string): Promise<void> {
-  await $`tmux send-keys -t ${tmuxName}:0.${paneIndex} -l ${data}`.quiet()
+  try {
+    await $`tmux send-keys -t ${tmuxName}:0.${paneIndex} -l ${data}`.quiet()
+  } catch (error) {
+    // Check if session/pane exists before throwing
+    const exists = await tmuxSessionExists(tmuxName)
+    if (!exists) {
+      throw new Error(`Session ${tmuxName} not found`)
+    }
+    const panes = await listPanes(tmuxName)
+    if (!panes.find(p => p.index === paneIndex)) {
+      throw new Error(`Pane ${paneIndex} not found in session ${tmuxName}`)
+    }
+    throw error
+  }
 }
 
 // Capture pane content
@@ -251,7 +265,7 @@ export function createTerminalRoutes() {
   // Returns existing session if one exists, or creates new one
   terminal.post('/create', async (c) => {
     const { cwd, cols = 80, rows = 24 } = await c.req.json()
-    const workspace = cwd || process.cwd()
+    const workspace = cwd || getOpenCodeWorkingDirectory()
     const tmuxName = getTmuxSessionName(workspace)
 
     try {
@@ -294,7 +308,7 @@ export function createTerminalRoutes() {
   // Create new pane in existing session
   terminal.post('/pane/create', async (c) => {
     const { sessionId, cwd } = await c.req.json()
-    const workspace = cwd || process.cwd()
+    const workspace = cwd || getOpenCodeWorkingDirectory()
     const tmuxName = sessionId || getTmuxSessionName(workspace)
 
     try {
