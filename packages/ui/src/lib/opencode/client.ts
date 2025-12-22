@@ -1106,39 +1106,56 @@ class OpencodeService {
     const url = `${this.baseUrl}/opencode/directory`;
     console.log('[OpencodeClient] POST', url, 'with path:', directoryPath);
 
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ path: directoryPath })
-      });
+    const maxRetries = 6;
+    const retryDelayMs = 500;
 
-      const payload = await response.json().catch(() => null);
+    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ path: directoryPath })
+        });
 
-      if (!response.ok) {
-        const error = payload ?? {};
-        const message =
-          typeof error.error === 'string' && error.error.length > 0
-            ? error.error
-            : 'Failed to update OpenCode working directory';
-        throw new Error(message);
+        const payload = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          const error = payload ?? {};
+          const isRestarting = response.status === 503 && error?.restarting === true;
+          if (isRestarting && attempt < maxRetries) {
+            await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+            continue;
+          }
+
+          const message =
+            typeof error.error === 'string' && error.error.length > 0
+              ? error.error
+              : 'Failed to update OpenCode working directory';
+          throw new Error(message);
+        }
+
+        if (payload && typeof payload === 'object') {
+          return payload as DirectorySwitchResult;
+        }
+
+        return {
+          success: true,
+          restarted: false,
+          path: directoryPath
+        };
+      } catch (error) {
+        if (attempt < maxRetries) {
+          await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+          continue;
+        }
+        console.warn('Failed to update OpenCode working directory:', error);
+        throw error;
       }
-
-      if (payload && typeof payload === 'object') {
-        return payload as DirectorySwitchResult;
-      }
-
-      return {
-        success: true,
-        restarted: false,
-        path: directoryPath
-      };
-    } catch (error) {
-      console.warn('Failed to update OpenCode working directory:', error);
-      throw error;
     }
+
+    return null;
   }
 }
 

@@ -174,7 +174,10 @@ export const DirectoryExplorerDialog: React.FC<DirectoryExplorerDialogProps> = (
   }, [homeDirectory]);
 
   const handleConfirm = React.useCallback(async () => {
-    const rawPath = pathInputValue.trim() || pendingPath;
+    const trimmedInput = pathInputValue.trim();
+    const rawPath = pendingPath && pendingPath.startsWith('/')
+      ? pendingPath
+      : (trimmedInput || pendingPath);
     if (!rawPath) {
       return;
     }

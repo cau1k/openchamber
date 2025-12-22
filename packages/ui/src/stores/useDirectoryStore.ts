@@ -48,6 +48,34 @@ const notifyOpenCodeWorkingDirectory = (path: string, options?: { showOverlay?: 
   });
 };
 
+const resolveTildePath = (input: string, homeDir: string) => {
+  const trimmed = input.trim();
+  if (!trimmed.startsWith('~')) {
+    return trimmed;
+  }
+
+  const homeBase = homeDir.split('/').filter(Boolean).pop();
+  if (homeBase && (trimmed === `~/${homeBase}` || trimmed.startsWith(`~/${homeBase}/`))) {
+    const suffix = trimmed.slice(homeBase.length + 3);
+    return suffix ? `${homeDir}/${suffix}` : homeDir;
+  }
+
+  if (trimmed === '~') {
+    return homeDir;
+  }
+
+  if (trimmed.startsWith('~/')) {
+    return `${homeDir}/${trimmed.slice(2)}`;
+  }
+
+  return trimmed;
+};
+
+const resolveDirectoryPath = (path: string, homeHint?: string | null) => {
+  const homeDir = homeHint || cachedHomeDirectory || getHomeDirectory();
+  return resolveTildePath(path, homeDir || '/');
+};
+
 const scheduleDirectoryFollowUp = (
   restartPromise: Promise<DirectorySwitchResult | null>,
   options: { showOverlay: boolean },
@@ -131,9 +159,6 @@ const invalidateFileSearchCache = (scope?: string | null) => {
 const getHomeDirectory = () => {
 
   if (typeof window !== 'undefined') {
-    const saved = safeStorage.getItem('lastDirectory');
-    if (saved) return saved;
-
     if (cachedHomeDirectory) return cachedHomeDirectory;
 
     const desktopHome =
@@ -262,22 +287,36 @@ export const useDirectoryStore = create<DirectoryStore>()(
       setDirectory: (path: string, options?: { showOverlay?: boolean }) => {
         console.log('[DirectoryStore] setDirectory called with path:', path);
         const showOverlay = options?.showOverlay ?? true;
+        const state = get();
+        const resolvedPath = resolveDirectoryPath(path, state.homeDirectory || cachedHomeDirectory);
 
-        opencodeClient.setDirectory(path);
+        if (state.currentDirectory === resolvedPath) {
+          if (state.isSwitchingDirectory) {
+            console.warn('[DirectoryStore] Ignoring directory switch while restart is in progress.');
+          }
+          return;
+        }
+
+        if (state.isSwitchingDirectory) {
+          console.warn('[DirectoryStore] Ignoring directory switch; another switch is in progress.');
+          return;
+        }
+
+        opencodeClient.setDirectory(resolvedPath);
         invalidateFileSearchCache();
-        const restartPromise = notifyOpenCodeWorkingDirectory(path, { showOverlay });
+        const restartPromise = notifyOpenCodeWorkingDirectory(resolvedPath, { showOverlay });
         console.log('[DirectoryStore] notifyOpenCodeWorkingDirectory initiated');
 
         set((state) => {
 
-          const newHistory = [...state.directoryHistory.slice(0, state.historyIndex + 1), path];
+          const newHistory = [...state.directoryHistory.slice(0, state.historyIndex + 1), resolvedPath];
 
-          safeStorage.setItem('lastDirectory', path);
+          safeStorage.setItem('lastDirectory', resolvedPath);
 
-          void updateDesktopSettings({ lastDirectory: path });
+          void updateDesktopSettings({ lastDirectory: resolvedPath });
 
           return {
-            currentDirectory: path,
+            currentDirectory: resolvedPath,
             directoryHistory: newHistory,
             historyIndex: newHistory.length - 1,
             hasPersistedDirectory: true,
@@ -288,7 +327,7 @@ export const useDirectoryStore = create<DirectoryStore>()(
 
         scheduleDirectoryFollowUp(restartPromise, { showOverlay }, () => {
           set((state) => {
-            if (state.currentDirectory !== path) {
+            if (state.currentDirectory !== resolvedPath) {
               return {};
             }
             if (!state.isSwitchingDirectory) {
@@ -304,34 +343,8 @@ export const useDirectoryStore = create<DirectoryStore>()(
         if (state.historyIndex > 0) {
           const newIndex = state.historyIndex - 1;
           const newDirectory = state.directoryHistory[newIndex];
-
-          opencodeClient.setDirectory(newDirectory);
-          invalidateFileSearchCache();
-          const restartPromise = notifyOpenCodeWorkingDirectory(newDirectory);
-
-          safeStorage.setItem('lastDirectory', newDirectory);
-
-          void updateDesktopSettings({ lastDirectory: newDirectory });
-
-          set({
-            currentDirectory: newDirectory,
-            historyIndex: newIndex,
-            hasPersistedDirectory: true,
-            isHomeReady: true,
-            isSwitchingDirectory: true,
-          });
-
-          scheduleDirectoryFollowUp(restartPromise, { showOverlay: true }, () => {
-            set((state) => {
-              if (state.currentDirectory !== newDirectory) {
-                return {};
-              }
-              if (!state.isSwitchingDirectory) {
-                return {};
-              }
-              return { isSwitchingDirectory: false };
-            });
-          });
+          get().setDirectory(newDirectory, { showOverlay: true });
+          set({ historyIndex: newIndex });
         }
       },
 
@@ -340,34 +353,8 @@ export const useDirectoryStore = create<DirectoryStore>()(
         if (state.historyIndex < state.directoryHistory.length - 1) {
           const newIndex = state.historyIndex + 1;
           const newDirectory = state.directoryHistory[newIndex];
-
-          opencodeClient.setDirectory(newDirectory);
-          invalidateFileSearchCache();
-          const restartPromise = notifyOpenCodeWorkingDirectory(newDirectory);
-
-          safeStorage.setItem('lastDirectory', newDirectory);
-
-          void updateDesktopSettings({ lastDirectory: newDirectory });
-
-          set({
-            currentDirectory: newDirectory,
-            historyIndex: newIndex,
-            hasPersistedDirectory: true,
-            isHomeReady: true,
-            isSwitchingDirectory: true,
-          });
-
-          scheduleDirectoryFollowUp(restartPromise, { showOverlay: true }, () => {
-            set((state) => {
-              if (state.currentDirectory !== newDirectory) {
-                return {};
-              }
-              if (!state.isSwitchingDirectory) {
-                return {};
-              }
-              return { isSwitchingDirectory: false };
-            });
-          });
+          get().setDirectory(newDirectory, { showOverlay: true });
+          set({ historyIndex: newIndex });
         }
       },
 
