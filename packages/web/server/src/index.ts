@@ -101,9 +101,11 @@ async function main() {
   console.log(`[openchamber] OpenCode API available at port ${openCodePort}`)
   
   // Start Hono server with Bun.serve()
+  // idleTimeout: 0 disables timeout - critical for SSE connections
   const server = Bun.serve({
     port,
     fetch: app.fetch,
+    idleTimeout: 0,
   })
   
   console.log(`[openchamber] Server running at http://localhost:${server.port}`)
@@ -155,10 +157,12 @@ export async function startWebUiServer(options: ServerOptions): Promise<void> {
   }
   
   // Start Hono server with Bun.serve()
+  // idleTimeout: 0 disables timeout - critical for SSE streams
   activeServer = Bun.serve({
     port: options.port,
     fetch: app.fetch,
     reusePort: true,
+    idleTimeout: 0, // Disable idle timeout for SSE connections
   });
   const server = activeServer;
   

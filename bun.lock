@@ -22,6 +22,7 @@
         "@radix-ui/react-toggle": "^1.1.10",
         "@radix-ui/react-tooltip": "^1.2.8",
         "@remixicon/react": "^4.7.0",
+        "@skitee3000/bun-pty": "^0.3.3",
         "@types/react-syntax-highlighter": "^15.5.13",
         "@xterm/addon-fit": "^0.10.0",
         "@xterm/xterm": "^5.3.0",
@@ -701,6 +702,8 @@
     "@sindresorhus/is": ["@sindresorhus/is@4.6.0", "", {}, "sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw=="],
 
     "@sindresorhus/merge-streams": ["@sindresorhus/merge-streams@2.3.0", "", {}, "sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg=="],
+
+    "@skitee3000/bun-pty": ["@skitee3000/bun-pty@0.3.3", "", {}, "sha512-y+kA3435zkFjh11KdQMy0ho/UkKN/iae0t9tTE7iZ762Oi2h31dGOvbRIJWeJZ2qYYTJvAd6NEIzJlZUhI6ukw=="],
 
     "@swc/helpers": ["@swc/helpers@0.5.17", "", { "dependencies": { "tslib": "2.8.1" } }, "sha512-5IKx/Y13RsYd+sauPb2x+U/xZikHjolzfuDgTAl/Tdf3Q8rslRvC19NKDLgAJQ6wsqADk10ntlv08nPFw/gO/A=="],
 
