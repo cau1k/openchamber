@@ -5,16 +5,10 @@
 import { Hono } from 'hono'
 import { join, resolve } from 'path'
 import { homedir } from 'os'
+import { expandTilde, resolveDirectory } from '../lib/paths'
 
-// Expand tilde (~) to home directory
-function expandTilde(p: string): string {
-  if (p.startsWith('~/')) {
-    return join(homedir(), p.slice(2))
-  }
-  if (p === '~') {
-    return homedir()
-  }
-  return p
+function resolveFilePath(rawPath: string): string {
+  return resolve(expandTilde(rawPath))
 }
 
 export function createFileRoutes() {
@@ -27,17 +21,27 @@ export function createFileRoutes() {
       return c.json({ error: 'path required' }, 400)
     }
 
+    const resolvedPath = resolveFilePath(filePath)
+
     try {
-      const file = Bun.file(filePath)
+      const file = Bun.file(resolvedPath)
       if (!await file.exists()) {
-        return c.json({ error: 'File not found' }, 404)
+        return c.json({
+          error: 'File not found',
+          raw: filePath,
+          resolved: resolvedPath,
+        }, 404)
       }
 
       const content = await file.text()
-      return c.json({ content, path: filePath })
+      return c.json({ content, path: resolvedPath })
     } catch (error) {
       console.error('[files/read]', error)
-      return c.json({ error: 'Failed to read file' }, 500)
+      return c.json({
+        error: 'Failed to read file',
+        raw: filePath,
+        resolved: resolvedPath,
+      }, 500)
     }
   })
 
@@ -48,12 +52,18 @@ export function createFileRoutes() {
       return c.json({ error: 'path and content required' }, 400)
     }
 
+    const resolvedPath = resolveFilePath(filePath)
+
     try {
-      await Bun.write(filePath, content)
-      return c.json({ success: true, path: filePath })
+      await Bun.write(resolvedPath, content)
+      return c.json({ success: true, path: resolvedPath })
     } catch (error) {
       console.error('[files/write]', error)
-      return c.json({ error: 'Failed to write file' }, 500)
+      return c.json({
+        error: 'Failed to write file',
+        raw: filePath,
+        resolved: resolvedPath,
+      }, 500)
     }
   })
 
@@ -64,24 +74,33 @@ export function createFileRoutes() {
       return c.json({ error: 'path required' }, 400)
     }
 
-    const file = Bun.file(filePath)
+    const resolvedPath = resolveFilePath(filePath)
+    const file = Bun.file(resolvedPath)
     const exists = await file.exists()
-    return c.json({ exists, path: filePath })
+    return c.json({ exists, path: resolvedPath })
   })
 
   // List directory
   files.get('/list', async (c) => {
-    const rawPath = c.req.query('path') || homedir()
-    const dirPath = resolve(expandTilde(rawPath))
-    
+    const { path: dirPath, error } = await resolveDirectory(c.req.query('path'), {
+      fallback: homedir(),
+      requireExists: true,
+    })
+
+    if (error || !dirPath) {
+      const status = (error?.status ?? 400) as 400 | 403 | 500
+      c.status(status)
+      return c.json({ error: error?.message, ...error })
+    }
+
     try {
       const glob = new Bun.Glob('*')
       const entries: Array<{ name: string; path: string; isDirectory: boolean; size: number }> = []
-      
+
       for await (const entry of glob.scan({ cwd: dirPath, onlyFiles: false })) {
         const fullPath = join(dirPath, entry)
         const file = Bun.file(fullPath)
-        
+
         // Check if directory by trying to scan it
         let isDirectory = false
         try {
@@ -96,7 +115,7 @@ export function createFileRoutes() {
 
         entries.push({
           name: entry,
-          path: fullPath,  // client expects full path
+          path: fullPath, // client expects full path
           isDirectory,
           size: isDirectory ? 0 : file.size,
         })
@@ -105,7 +124,7 @@ export function createFileRoutes() {
       return c.json({ entries, path: dirPath })
     } catch (error) {
       console.error('[files/list]', error)
-      return c.json({ error: 'Failed to list directory' }, 500)
+      return c.json({ error: 'Failed to list directory', path: dirPath }, 500)
     }
   })
 
@@ -116,14 +135,22 @@ export function createFileRoutes() {
 
   // Search files (glob pattern)
   files.get('/search', async (c) => {
-    const directory = c.req.query('directory') || process.cwd()
+    const { path: directory, error } = await resolveDirectory(c.req.query('directory'), {
+      fallback: process.cwd(),
+      requireExists: true,
+    })
     const pattern = c.req.query('pattern') || '*'
     const limit = parseInt(c.req.query('limit') || '100', 10)
+
+    if (error || !directory) {
+      const status = (error?.status ?? 400) as 400 | 403 | 500
+      return c.json({ error: error?.message, ...error }, status)
+    }
 
     try {
       const glob = new Bun.Glob(pattern)
       const results: string[] = []
-      
+
       for await (const file of glob.scan({ cwd: directory, onlyFiles: true })) {
         results.push(file)
         if (results.length >= limit) break
@@ -132,7 +159,7 @@ export function createFileRoutes() {
       return c.json({ files: results, directory, pattern })
     } catch (error) {
       console.error('[files/search]', error)
-      return c.json({ error: 'Failed to search files' }, 500)
+      return c.json({ error: 'Failed to search files', directory, pattern }, 500)
     }
   })
 

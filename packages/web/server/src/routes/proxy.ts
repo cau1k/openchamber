@@ -4,13 +4,14 @@
  */
 
 import type { Context } from 'hono'
-import { 
-  getOpenCodePort, 
-  getOpenCodeApiPrefix, 
+import {
+  getOpenCodePort,
+  getOpenCodeApiPrefix,
   isOpenCodeApiPrefixDetected,
   isOpenCodeReady,
   isOpenCodeRestarting,
 } from '../lib/opencode'
+import { resolveDirectory } from '../lib/paths'
 
 const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 500
@@ -68,9 +69,24 @@ export function createApiProxy() {
 
       const rewrittenPath = rewritePath(clientPath)
       const url = `http://127.0.0.1:${port}${rewrittenPath}`
+
+      const requestUrl = new URL(c.req.url)
+      const directoryParam = requestUrl.searchParams.get('directory')
+      if (directoryParam) {
+        const { path, error } = await resolveDirectory(directoryParam, { requireExists: true })
+        if (error || !path) {
+          const status = (error?.status ?? 400) as 400 | 403 | 500
+          c.status(status)
+          return c.json({
+            error: error?.message || 'invalid directory',
+            ...error,
+          })
+        }
+        requestUrl.searchParams.set('directory', path)
+      }
       
       // Preserve query string
-      const queryString = c.req.url.split('?')[1]
+      const queryString = requestUrl.searchParams.toString()
       const fullUrl = queryString ? `${url}?${queryString}` : url
       
       console.log(`[proxy] ${c.req.method} ${clientPath} -> ${fullUrl}`)

@@ -4,9 +4,11 @@
  */
 
 import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { $ } from 'bun'
 import { join } from 'path'
 import { stat } from 'fs/promises'
+import { resolveDirectory, type DirectoryResolutionError } from '../lib/paths'
 
 // Helper to check if path exists (works for files AND directories)
 async function pathExists(path: string): Promise<boolean> {
@@ -18,14 +20,59 @@ async function pathExists(path: string): Promise<boolean> {
   }
 }
 
+function respondDirectoryError(c: Context, error?: DirectoryResolutionError): Response {
+  const status = (error?.status ?? 400) as 400 | 403 | 500
+  c.status(status)
+  return c.json({ error: error?.message, ...error })
+}
+
+async function resolveDirectoryFromQuery(
+  c: Context,
+  options: { fallback?: string; requireExists?: boolean } = {}
+): Promise<string | Response> {
+  const { path, error } = await resolveDirectory(c.req.query('directory'), options)
+  if (error || !path) {
+    return respondDirectoryError(c, error)
+  }
+  return path
+}
+
+async function resolveDirectoryFromBody(
+  c: Context,
+  raw: string | null | undefined,
+  options: { fallback?: string; requireExists?: boolean } = {}
+): Promise<string | Response> {
+  const { path, error } = await resolveDirectory(raw, options)
+  if (error || !path) {
+    return respondDirectoryError(c, error)
+  }
+  return path
+}
+
+async function resolveOptionalDirectoryFromQuery(
+  c: Context,
+  fallback: string
+): Promise<string | Response> {
+  const raw = c.req.query('directory')
+  if (!raw) {
+    return fallback
+  }
+
+  const { path, error } = await resolveDirectory(raw, { requireExists: true })
+  if (error || !path) {
+    return respondDirectoryError(c, error)
+  }
+  return path
+}
+
 export function createGitRoutes() {
   const git = new Hono()
 
   // Check if directory is a git repo
   git.get('/is-repo', async (c) => {
-    const directory = c.req.query('directory')
-    if (!directory) {
-      return c.json({ error: 'directory required' }, 400)
+    const directory = await resolveDirectoryFromQuery(c, { requireExists: true })
+    if (directory instanceof Response) {
+      return directory
     }
 
     const gitDir = join(directory, '.git')
@@ -35,9 +82,9 @@ export function createGitRoutes() {
 
   // Alias for is-repo check - some clients call /check
   git.get('/check', async (c) => {
-    const directory = c.req.query('directory')
-    if (!directory) {
-      return c.json({ error: 'directory required' }, 400)
+    const directory = await resolveDirectoryFromQuery(c, { requireExists: true })
+    if (directory instanceof Response) {
+      return directory
     }
 
     const gitDir = join(directory, '.git')
@@ -47,9 +94,9 @@ export function createGitRoutes() {
 
   // Get git status
   git.get('/status', async (c) => {
-    const directory = c.req.query('directory')
-    if (!directory) {
-      return c.json({ error: 'directory required' }, 400)
+    const directory = await resolveDirectoryFromQuery(c, { requireExists: true })
+    if (directory instanceof Response) {
+      return directory
     }
 
     // Check if directory is a git repo first
@@ -150,14 +197,14 @@ export function createGitRoutes() {
 
   // Get diff
   git.get('/diff', async (c) => {
-    const directory = c.req.query('directory')
+    const directory = await resolveDirectoryFromQuery(c, { requireExists: true })
+    if (directory instanceof Response) {
+      return directory
+    }
+
     const path = c.req.query('path')
     const staged = c.req.query('staged') === 'true'
     const contextLines = parseInt(c.req.query('contextLines') || '3', 10)
-
-    if (!directory) {
-      return c.json({ error: 'directory required' }, 400)
-    }
 
     try {
       const args = ['diff', '--no-color', `-U${contextLines}`]
@@ -174,11 +221,15 @@ export function createGitRoutes() {
 
   // Get file diff (original + modified content)
   git.get('/file-diff', async (c) => {
-    const directory = c.req.query('directory')
+    const directory = await resolveDirectoryFromQuery(c, { requireExists: true })
+    if (directory instanceof Response) {
+      return directory
+    }
+
     const filePath = c.req.query('path')
 
-    if (!directory || !filePath) {
-      return c.json({ error: 'directory and path required' }, 400)
+    if (!filePath) {
+      return c.json({ error: 'path required' }, 400)
     }
 
     try {
@@ -208,9 +259,9 @@ export function createGitRoutes() {
 
   // Get branches
   git.get('/branches', async (c) => {
-    const directory = c.req.query('directory')
-    if (!directory) {
-      return c.json({ error: 'directory required' }, 400)
+    const directory = await resolveDirectoryFromQuery(c, { requireExists: true })
+    if (directory instanceof Response) {
+      return directory
     }
 
     try {
@@ -229,14 +280,15 @@ export function createGitRoutes() {
     }
   })
 
+
   // Get log
   git.get('/log', async (c) => {
-    const directory = c.req.query('directory')
-    const maxCount = parseInt(c.req.query('maxCount') || '50', 10)
-
-    if (!directory) {
-      return c.json({ error: 'directory required' }, 400)
+    const directory = await resolveDirectoryFromQuery(c, { requireExists: true })
+    if (directory instanceof Response) {
+      return directory
     }
+
+    const maxCount = parseInt(c.req.query('maxCount') || '50', 10)
 
     try {
       const format = '%H%x1f%an%x1f%ae%x1f%aI%x1f%s'
@@ -257,19 +309,24 @@ export function createGitRoutes() {
   // Commit
   git.post('/commit', async (c) => {
     const { directory, message, files, addAll } = await c.req.json()
-    
-    if (!directory || !message) {
-      return c.json({ error: 'directory and message required' }, 400)
+
+    if (!message) {
+      return c.json({ error: 'message required' }, 400)
+    }
+
+    const resolved = await resolveDirectoryFromBody(c, directory, { requireExists: true })
+    if (resolved instanceof Response) {
+      return resolved
     }
 
     try {
       if (addAll) {
-        await $`git -C ${directory} add -A`.quiet()
+        await $`git -C ${resolved} add -A`.quiet()
       } else if (files?.length) {
-        await $`git -C ${directory} add ${files}`.quiet()
+        await $`git -C ${resolved} add ${files}`.quiet()
       }
 
-      const result = await $`git -C ${directory} commit -m ${message}`.text()
+      const result = await $`git -C ${resolved} commit -m ${message}`.text()
       return c.json({ success: true, result })
     } catch (error) {
       console.error('[git/commit]', error)
@@ -277,19 +334,21 @@ export function createGitRoutes() {
     }
   })
 
+
   // Push
   git.post('/push', async (c) => {
     const { directory, remote = 'origin', branch } = await c.req.json()
-    
-    if (!directory) {
-      return c.json({ error: 'directory required' }, 400)
+
+    const resolved = await resolveDirectoryFromBody(c, directory, { requireExists: true })
+    if (resolved instanceof Response) {
+      return resolved
     }
 
     try {
       const args = ['push', remote]
       if (branch) args.push(branch)
-      
-      await $`git -C ${directory} ${args}`.quiet()
+
+      await $`git -C ${resolved} ${args}`.quiet()
       return c.json({ success: true })
     } catch (error) {
       console.error('[git/push]', error)
@@ -297,19 +356,22 @@ export function createGitRoutes() {
     }
   })
 
+
+
   // Pull
   git.post('/pull', async (c) => {
     const { directory, remote = 'origin', branch } = await c.req.json()
-    
-    if (!directory) {
-      return c.json({ error: 'directory required' }, 400)
+
+    const resolved = await resolveDirectoryFromBody(c, directory, { requireExists: true })
+    if (resolved instanceof Response) {
+      return resolved
     }
 
     try {
       const args = ['pull', remote]
       if (branch) args.push(branch)
-      
-      const result = await $`git -C ${directory} ${args}`.text()
+
+      const result = await $`git -C ${resolved} ${args}`.text()
       return c.json({ success: true, result })
     } catch (error) {
       console.error('[git/pull]', error)
@@ -317,16 +379,22 @@ export function createGitRoutes() {
     }
   })
 
+
   // Checkout branch
   git.post('/checkout', async (c) => {
     const { directory, branch } = await c.req.json()
-    
-    if (!directory || !branch) {
-      return c.json({ error: 'directory and branch required' }, 400)
+
+    if (!branch) {
+      return c.json({ error: 'branch required' }, 400)
+    }
+
+    const resolved = await resolveDirectoryFromBody(c, directory, { requireExists: true })
+    if (resolved instanceof Response) {
+      return resolved
     }
 
     try {
-      await $`git -C ${directory} checkout ${branch}`.quiet()
+      await $`git -C ${resolved} checkout ${branch}`.quiet()
       return c.json({ success: true, branch })
     } catch (error) {
       console.error('[git/checkout]', error)
@@ -337,25 +405,30 @@ export function createGitRoutes() {
   // Revert file
   git.post('/revert', async (c) => {
     const { directory, path: filePath } = await c.req.json()
-    
-    if (!directory || !filePath) {
-      return c.json({ error: 'directory and path required' }, 400)
+
+    if (!filePath) {
+      return c.json({ error: 'path required' }, 400)
+    }
+
+    const resolved = await resolveDirectoryFromBody(c, directory, { requireExists: true })
+    if (resolved instanceof Response) {
+      return resolved
     }
 
     try {
       // Check if tracked
-      const isTracked = await $`git -C ${directory} ls-files --error-unmatch ${filePath}`
+      const isTracked = await $`git -C ${resolved} ls-files --error-unmatch ${filePath}`
         .quiet()
         .then(() => true)
         .catch(() => false)
 
       if (!isTracked) {
         // Untracked - clean it
-        await $`git -C ${directory} clean -f -- ${filePath}`.quiet()
+        await $`git -C ${resolved} clean -f -- ${filePath}`.quiet()
       } else {
         // Tracked - restore
-        await $`git -C ${directory} restore --staged ${filePath}`.quiet().catch(() => {})
-        await $`git -C ${directory} restore ${filePath}`.quiet()
+        await $`git -C ${resolved} restore --staged ${filePath}`.quiet().catch(() => {})
+        await $`git -C ${resolved} restore ${filePath}`.quiet()
       }
 
       return c.json({ success: true })
@@ -367,16 +440,18 @@ export function createGitRoutes() {
 
   // Get identity
   git.get('/identity', async (c) => {
-    const directory = c.req.query('directory')
     const scope = c.req.query('scope') || 'local'
-    
+    const cwdResult = await resolveOptionalDirectoryFromQuery(c, process.cwd())
+    if (cwdResult instanceof Response) {
+      return cwdResult
+    }
+
     try {
       const args = scope === 'global' ? ['--global'] : []
-      const cwd = directory || process.cwd()
-      
+
       const [userName, userEmail] = await Promise.all([
-        $`git -C ${cwd} config ${args} user.name`.text().catch(() => ''),
-        $`git -C ${cwd} config ${args} user.email`.text().catch(() => ''),
+        $`git -C ${cwdResult} config ${args} user.name`.text().catch(() => ''),
+        $`git -C ${cwdResult} config ${args} user.email`.text().catch(() => ''),
       ])
 
       return c.json({
@@ -392,19 +467,20 @@ export function createGitRoutes() {
   // Set identity
   git.post('/identity', async (c) => {
     const { directory, userName, userEmail, scope = 'local' } = await c.req.json()
-    
-    if (!directory) {
-      return c.json({ error: 'directory required' }, 400)
+
+    const resolved = await resolveDirectoryFromBody(c, directory, { requireExists: true })
+    if (resolved instanceof Response) {
+      return resolved
     }
 
     try {
       const args = scope === 'global' ? ['--global'] : []
-      
+
       if (userName) {
-        await $`git -C ${directory} config ${args} user.name ${userName}`.quiet()
+        await $`git -C ${resolved} config ${args} user.name ${userName}`.quiet()
       }
       if (userEmail) {
-        await $`git -C ${directory} config ${args} user.email ${userEmail}`.quiet()
+        await $`git -C ${resolved} config ${args} user.email ${userEmail}`.quiet()
       }
 
       return c.json({ success: true })
@@ -416,9 +492,9 @@ export function createGitRoutes() {
 
   // Worktrees
   git.get('/worktrees', async (c) => {
-    const directory = c.req.query('directory')
-    if (!directory) {
-      return c.json({ error: 'directory required' }, 400)
+    const directory = await resolveDirectoryFromQuery(c, { requireExists: true })
+    if (directory instanceof Response) {
+      return directory
     }
 
     // Check if directory is a git repo first
@@ -447,7 +523,7 @@ export function createGitRoutes() {
           current = {}
         }
       }
-      
+
       if (current.worktree) worktrees.push(current as any)
 
       return c.json(worktrees)

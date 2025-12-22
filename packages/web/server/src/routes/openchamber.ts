@@ -6,22 +6,9 @@
  */
 
 import { Hono } from 'hono'
-import { getDataDir } from '../lib/paths'
+import { getDataDir, resolveDirectory } from '../lib/paths'
 import { getOpenCodeWorkingDirectory, restartOpenCode } from '../lib/opencode'
 import path from 'path'
-import { stat } from 'fs/promises'
-import { homedir } from 'os'
-
-// Expand tilde (~) to home directory
-function expandTilde(p: string): string {
-  if (p.startsWith('~/')) {
-    return path.join(homedir(), p.slice(2))
-  }
-  if (p === '~') {
-    return homedir()
-  }
-  return p
-}
 
 const MODELS_DEV_URL = 'https://models.dev/api.json'
 
@@ -33,15 +20,15 @@ export function createOpenchamberRoutes() {
     try {
       const response = await fetch(MODELS_DEV_URL, {
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
           'User-Agent': 'OpenChamber/1.0',
         },
       })
-      
+
       if (!response.ok) {
         return c.json({ error: 'Failed to fetch models metadata' }, 502)
       }
-      
+
       const data = await response.json()
       return c.json(data)
     } catch (error) {
@@ -62,7 +49,7 @@ export function createOpenchamberRoutes() {
       // Check GitHub releases for latest version
       const response = await fetch('https://api.github.com/repos/openchamber/openchamber/releases/latest', {
         headers: {
-          'Accept': 'application/vnd.github.v3+json',
+          Accept: 'application/vnd.github.v3+json',
           'User-Agent': 'OpenChamber/1.0',
         },
       })
@@ -122,31 +109,19 @@ export function createOpenchamberRoutes() {
     try {
       const body = await c.req.json()
       const requestedPath = typeof body?.path === 'string' ? body.path.trim() : ''
-      
+
       if (!requestedPath) {
         return c.json({ error: 'Path is required' }, 400)
       }
 
-      // Expand tilde and resolve to absolute path
-      const resolvedPath = path.resolve(expandTilde(requestedPath))
-      
-      // Validate path exists and is a directory
-      let stats
-      try {
-        stats = await stat(resolvedPath)
-      } catch (error: unknown) {
-        const err = error as NodeJS.ErrnoException
-        if (err.code === 'ENOENT') {
-          return c.json({ error: 'Path does not exist' }, 400)
-        }
-        if (err.code === 'EACCES') {
-          return c.json({ error: 'Permission denied' }, 403)
-        }
-        throw error
-      }
+      const { path: resolvedPath, error } = await resolveDirectory(requestedPath, {
+        requireExists: true,
+      })
 
-      if (!stats.isDirectory()) {
-        return c.json({ error: 'Specified path is not a directory' }, 400)
+      if (error || !resolvedPath) {
+        const status = (error?.status ?? 400) as 400 | 403 | 500
+        c.status(status)
+        return c.json({ error: error?.message, ...error })
       }
 
       // Check if directory actually changed
@@ -159,11 +134,11 @@ export function createOpenchamberRoutes() {
       await restartOpenCode(resolvedPath)
 
       console.log(`[openchamber] Working directory changed to: ${resolvedPath}`)
-      
+
       return c.json({
         success: true,
         restarted: true,
-        path: resolvedPath
+        path: resolvedPath,
       })
     } catch (error) {
       console.error('[openchamber] Failed to update working directory:', error)

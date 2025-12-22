@@ -11,6 +11,7 @@ import { Hono } from 'hono'
 import { spawn } from '@skitee3000/bun-pty'
 import { createHash } from 'crypto'
 import { getOpenCodeWorkingDirectory } from '../lib/opencode'
+import { resolveDirectory } from '../lib/paths'
 
 // PTY session state
 interface PtySession {
@@ -218,11 +219,21 @@ export function createTerminalRoutes() {
   // Create or get terminal session
   terminal.post('/create', async (c) => {
     const { cwd, cols = 80, rows = 24 } = await c.req.json()
-    const workspace = cwd || getOpenCodeWorkingDirectory()
+    const fallback = getOpenCodeWorkingDirectory()
+    const { path: workspace, error } = await resolveDirectory(cwd, {
+      fallback,
+      requireExists: true,
+    })
+
+    if (error || !workspace) {
+      const status = (error?.status ?? 400) as 400 | 403 | 500
+      c.status(status)
+      return c.json({ error: error?.message, ...error })
+    }
 
     try {
       const { session, isNew } = getOrCreateSessionForWorkspace(workspace, cols, rows)
-      
+
       return c.json({
         sessionId: session.id,
         workspace: session.workspace,
