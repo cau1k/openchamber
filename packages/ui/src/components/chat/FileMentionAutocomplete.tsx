@@ -308,11 +308,6 @@ export const FileMentionAutocomplete = React.forwardRef<FileMentionHandle, FileM
         className="absolute z-[100] min-w-0 w-full max-w-[520px] max-h-64 bg-background border border-border rounded-none-none shadow-none bottom-full mb-2 left-0 flex flex-col"
       >
         <ScrollableOverlay outerClassName="flex-1 min-h-0" className="px-0">
-        {loading ? (
-          <div className="flex items-center justify-center py-4">
-            <RiRefreshLine className="h-4 w-4 animate-spin text-muted-foreground" />
-          </div>
-        ) : (
           <div className="pb-2">
             {files.map((file, index) => {
               const relativePath = file.relativePath || file.name;
@@ -367,19 +362,18 @@ export const FileMentionAutocomplete = React.forwardRef<FileMentionHandle, FileM
                 </React.Fragment>
               );
             })}
-            {}
             {files.length > 0 && <div className="h-2" />}
-            {files.length === 0 && (
+            {!loading && files.length === 0 && (
               <div className="px-3 py-2 typography-ui-label text-muted-foreground">
                 No files found
               </div>
             )}
           </div>
-        )}
         </ScrollableOverlay>
-        <div className="px-3 pt-1 pb-1.5 border-t typography-meta text-muted-foreground">
-        ↑↓ navigate • Enter select • Esc close
-      </div>
+        <div className="px-3 pt-1 pb-1.5 border-t typography-meta text-muted-foreground flex items-center justify-between">
+          <span>↑↓ navigate • Enter select • Esc close</span>
+          {loading && <RiRefreshLine className="h-3 w-3 animate-spin text-muted-foreground" />}
+        </div>
     </div>
   );
 });
