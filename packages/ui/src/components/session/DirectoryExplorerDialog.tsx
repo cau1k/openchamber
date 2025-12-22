@@ -151,12 +151,15 @@ export const DirectoryExplorerDialog: React.FC<DirectoryExplorerDialogProps> = (
   ]);
 
   const handleConfirm = React.useCallback(async () => {
-    const pathToUse = pathInputValue.trim() || pendingPath;
-    if (!pathToUse) {
+    const rawPath = pathInputValue.trim() || pendingPath;
+    if (!rawPath) {
       return;
     }
-    await finalizeSelection(pathToUse);
-  }, [finalizeSelection, pathInputValue, pendingPath]);
+    const resolvedPath = rawPath.startsWith('~') && homeDirectory
+      ? rawPath.replace(/^~/, homeDirectory)
+      : rawPath;
+    await finalizeSelection(resolvedPath);
+  }, [finalizeSelection, pathInputValue, pendingPath, homeDirectory]);
 
   const handleSelectPath = React.useCallback((path: string) => {
     setPendingPath(path);
