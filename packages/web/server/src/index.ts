@@ -36,7 +36,9 @@ app.get('/health', (c) => c.json({ status: 'ok', runtime: 'bun' }))
 
 // Mount route modules
 app.route('/api/git', createGitRoutes())
-app.route('/api/filesystem', createFileRoutes())
+app.route('/api/fs', createFileRoutes())        // upstream compatibility
+app.route('/api/files', createFileRoutes())     // client expects this
+app.route('/api/filesystem', createFileRoutes()) // legacy
 app.route('/api/terminal', createTerminalRoutes())
 app.route('/api/settings', createSettingsRoutes())
 app.route('/api/config', createConfigRoutes())
@@ -48,8 +50,13 @@ app.all('/api/*', createApiProxy())
 // Static files (UI bundle) - serve from dist/
 app.use('/*', serveStatic({ root: getDistDir() }))
 
-// SPA fallback
+// SPA fallback - exclude /api/* to prevent returning HTML for unmatched API routes
 app.get('*', async (c) => {
+  // Guard: API routes should never fall through to SPA - return JSON 404
+  if (c.req.path.startsWith('/api/')) {
+    return c.json({ error: 'Not found', path: c.req.path }, 404)
+  }
+  
   const indexPath = `${getDistDir()}/index.html`
   const file = Bun.file(indexPath)
   if (await file.exists()) {

@@ -60,7 +60,7 @@ export function createFileRoutes() {
 
   // List directory
   files.get('/list', async (c) => {
-    const dirPath = c.req.query('path') || process.cwd()
+    const dirPath = c.req.query('path') || homedir()
     
     try {
       const glob = new Bun.Glob('*')
