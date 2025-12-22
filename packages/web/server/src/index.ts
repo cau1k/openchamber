@@ -18,6 +18,7 @@ import { createFileRoutes } from './routes/files'
 import { createTerminalRoutes } from './routes/terminal'
 import { createSettingsRoutes } from './routes/settings'
 import { createConfigRoutes } from './routes/config'
+import { createOpenchamberRoutes } from './routes/openchamber'
 import { getOpenCodePort, ensureOpenCodeRunning } from './lib/opencode'
 import { getDataDir, getDistDir } from './lib/paths'
 
@@ -39,6 +40,7 @@ app.route('/api/filesystem', createFileRoutes())
 app.route('/api/terminal', createTerminalRoutes())
 app.route('/api/settings', createSettingsRoutes())
 app.route('/api/config', createConfigRoutes())
+app.route('/api/openchamber', createOpenchamberRoutes())
 
 // OpenCode API proxy - must be after specific routes
 app.all('/api/*', createApiProxy())
