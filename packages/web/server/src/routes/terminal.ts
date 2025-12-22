@@ -31,8 +31,9 @@ interface PtySession {
 // SSE subscriber
 interface Subscriber {
   id: string
-  writer: WritableStreamDefaultWriter
+  controller: ReadableStreamDefaultController
   sessionId: string
+  send: (data: object) => void
 }
 
 // Session storage
@@ -60,7 +61,7 @@ function getDefaultShell(): string {
   return Bun.env.SHELL || '/bin/bash'
 }
 
-// Flush pending data to subscribers
+  // Flush pending data to subscribers
 function flushData(sessionId: string): void {
   const data = pendingData.get(sessionId)
   if (!data || data.length === 0) return
@@ -79,11 +80,15 @@ function flushData(sessionId: string): void {
   }
 
   // Send to all subscribers of this session
+  // Format: { type: 'data', data: '...' } to match client expectations
+  const encoder = new TextEncoder()
   for (const [subId, sub] of subscribers) {
     if (sub.sessionId === sessionId) {
-      sub.writer.write(`data: ${JSON.stringify({ data, sessionId })}\n\n`).catch(() => {
+      try {
+        sub.controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'data', data })}\n\n`))
+      } catch {
         subscribers.delete(subId)
-      })
+      }
     }
   }
 }
@@ -137,11 +142,14 @@ function createSession(id: string, workspace: string, cols: number, rows: number
     session.exitSignal = typeof signal === 'number' ? signal : null
     console.log(`[terminal] Session ${id} exited with code ${exitCode}, signal ${signal}`)
     
-    // Notify subscribers
+    // Notify subscribers - format: { type: 'exit', exitCode, signal }
+    const encoder = new TextEncoder()
     for (const [subId, sub] of subscribers) {
       if (sub.sessionId === id) {
-        sub.writer.write(`data: ${JSON.stringify({ exit: true, exitCode, signal, sessionId: id })}\n\n`).catch(() => {})
-        sub.writer.close().catch(() => {})
+        try {
+          sub.controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'exit', exitCode, signal })}\n\n`))
+          sub.controller.close()
+        } catch {}
         subscribers.delete(subId)
       }
     }
@@ -275,28 +283,46 @@ export function createTerminalRoutes() {
       return c.json({ error: 'Session not found' }, 404)
     }
 
-    const { readable, writable } = new TransformStream()
-    const writer = writable.getWriter()
     const subscriberId = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    
+    // Use a streaming response with proper SSE format
+    const stream = new ReadableStream({
+      start(controller) {
+        const encoder = new TextEncoder()
+        
+        const send = (data: object) => {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
+        }
 
-    subscribers.set(subscriberId, { id: subscriberId, writer, sessionId })
+        // Create subscriber that writes to this stream
+        const subscriber: Subscriber = {
+          id: subscriberId,
+          controller,
+          sessionId,
+          send,
+        }
+        subscribers.set(subscriberId, subscriber)
 
-    // Send buffered output for reconnection
-    if (session.outputBuffer.length > 0) {
-      const initialData = session.outputBuffer.join('')
-      await writer.write(`data: ${JSON.stringify({ data: initialData, sessionId, initial: true })}\n\n`)
-    }
+        // Send buffered output for reconnection
+        if (session.outputBuffer.length > 0) {
+          const initialData = session.outputBuffer.join('')
+          send({ type: 'data', data: initialData, initial: true })
+        }
 
-    // Send connected event
-    await writer.write(`data: ${JSON.stringify({ connected: true, sessionId })}\n\n`)
-
-    // Cleanup on disconnect
-    c.req.raw.signal.addEventListener('abort', () => {
-      subscribers.delete(subscriberId)
-      writer.close().catch(() => {})
+        // Send connected event
+        send({ type: 'connected' })
+      },
+      cancel() {
+        subscribers.delete(subscriberId)
+      }
     })
 
-    return new Response(readable, {
+    // Cleanup on client disconnect
+    c.req.raw.signal.addEventListener('abort', () => {
+      subscribers.delete(subscriberId)
+    })
+
+    return new Response(stream, {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
