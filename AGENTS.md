@@ -155,7 +155,40 @@ Backend: `packages/ui/src/lib/gitApi.ts` + `packages/web/server/index.js` (simpl
 `packages/ui/src/components/views/`: TerminalView
 `packages/ui/src/components/terminal/`: TerminalViewport (Xterm.js with FitAddon)
 `packages/ui/src/stores/`: useTerminalStore
-Backend: `packages/web/server/index.js` (node-pty wrapper with SSE)
+Backend: `packages/web/server/src/routes/terminal.ts` (bun-pty with SSE)
+
+#### Terminal Architecture
+The terminal uses native PTY sessions via `@skitee3000/bun-pty` (NOT tmux, NOT node-pty).
+
+**Session lifecycle:**
+1. Client calls `POST /api/terminal/create` with `{ cwd, cols, rows }`
+2. Server spawns PTY via `spawn('bash', [], { name: 'xterm-256color', cols, rows, cwd })`
+3. PTY output is buffered (last 1000 lines) and streamed via SSE
+4. Client connects to `GET /api/terminal/stream/:sessionId/:paneIndex` for SSE
+5. Client sends input via `POST /api/terminal/write/:sessionId/:paneIndex`
+
+**SSE event format (client expects):**
+```json
+{ "type": "connected" }
+{ "type": "data", "data": "terminal output..." }
+{ "type": "exit", "exitCode": 0, "signal": null }
+```
+
+**Key implementation details:**
+- Sessions stored in `Map<sessionId, Session>` (in-memory, survives reconnects but not server restart)
+- Output buffer: last 1000 lines sent to reconnecting clients
+- SSE uses `ReadableStream` with `controller.enqueue()` (non-blocking)
+- `Bun.serve()` configured with `idleTimeout: 0` to prevent SSE timeout
+
+**Terminal API endpoints:**
+- `POST /api/terminal/create` - Create new PTY session
+- `POST /api/terminal/reset` - Kill and recreate session
+- `GET /api/terminal/stream/:sessionId/:paneIndex` - SSE output stream
+- `POST /api/terminal/write/:sessionId/:paneIndex` - Send input to PTY
+- `POST /api/terminal/resize/:sessionId/:paneIndex` - Resize PTY
+- `POST /api/terminal/kill/:sessionId/:paneIndex` - Kill session
+- `GET /api/terminal/sessions` - List all sessions
+- `GET /api/terminal/session/:sessionId` - Get session info
 
 ### Theme System
 `packages/ui/src/lib/theme/`: themes (2 definitions), cssGenerator, syntaxThemeGenerator
