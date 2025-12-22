@@ -18,6 +18,6 @@ export function getGitIdentitiesPath(): string {
 }
 
 export function getDistDir(): string {
-  // Relative to server/src, dist is at ../../dist
-  return join(import.meta.dir, '..', '..', 'dist')
+  // Relative to server/src/lib, dist is at ../../../dist
+  return join(import.meta.dir, '..', '..', '..', 'dist')
 }
