@@ -38,7 +38,7 @@ export function createGitRoutes() {
       const current = branchOutput.trim()
 
       // Get tracking info
-      let tracking = null
+      let tracking: string | null = null
       let ahead = 0
       let behind = 0
       

@@ -8,7 +8,8 @@
     "dev": "tsc --noEmit --watch",
     "build": "tsc --noEmit",
     "type-check": "tsc --noEmit",
-    "lint": "eslint \"./src/**/*.{ts,tsx}\" --config ../../eslint.config.js"
+    "lint": "eslint \"./src/**/*.{ts,tsx}\" --config ../../eslint.config.js",
+    "clean": "rm -rf dist .tsbuildinfo"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.7",

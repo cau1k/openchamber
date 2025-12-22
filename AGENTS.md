@@ -56,20 +56,34 @@ Extension in `packages/vscode`: Extension entry in `src/` (ChatViewProvider, bri
 
 ## Development Commands
 
+**This project uses Bun as the package manager and runtime. Do NOT use pnpm/npm/yarn.**
+
 ### Code Validation
 Always validate changes:
 
 ```bash
-pnpm -r type-check   # TypeScript validation
-pnpm -r lint         # ESLint checks
-pnpm -r build        # Production build
+bun run type-check             # TypeScript validation (root)
+bun run lint                   # ESLint checks
+bun run build                  # Production build
 ```
 
 ### Building
 ```bash
-pnpm run build                 # Build all packages
-pnpm run desktop:build         # Build desktop app
-pnpm vscode:build              # Build VS Code extension
+bun run build                  # Build all packages
+bun run desktop:build          # Build desktop app
+bun run vscode:build           # Build VS Code extension
+```
+
+### Cleaning
+```bash
+bun run clean                  # Clean all dist/build artifacts
+```
+
+### Running Dev Server
+```bash
+bun run dev                    # Start dev server with HMR
+# Or directly:
+cd packages/web && bun run bin/cli.ts serve --port 3001
 ```
 
 ## Communication & Output Discipline (MANDATORY)

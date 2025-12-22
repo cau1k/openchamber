@@ -18,6 +18,7 @@
     "build:watch": "vite build --watch",
     "type-check": "tsc --noEmit",
     "lint": "eslint \"./src/**/*.{ts,tsx}\" --config ../../eslint.config.js",
+    "clean": "rm -rf dist .tsbuildinfo",
     "start": "bun server/src/index.ts",
     "build:binary": "bun ../../scripts/build-binaries.ts",
     "build:binary:all": "bun ../../scripts/build-binaries.ts --target all"
