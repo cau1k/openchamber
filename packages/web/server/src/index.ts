@@ -109,9 +109,53 @@ async function main() {
   })
 }
 
+// Exported server start function for CLI integration
+export interface ServerOptions {
+  port: number;
+  workdir?: string;
+  attachSignals?: boolean;
+  exitOnShutdown?: boolean;
+  uiPassword?: string | null;
+}
+
+export async function startWebUiServer(options: ServerOptions): Promise<void> {
+  const workdir = options.workdir || process.cwd();
+  
+  console.log(`[openchamber] Starting server...`);
+  console.log(`[openchamber] Work directory: ${workdir}`);
+  console.log(`[openchamber] Data directory: ${getDataDir()}`);
+  
+  // Ensure OpenCode is running
+  const openCodePort = await ensureOpenCodeRunning(workdir);
+  console.log(`[openchamber] OpenCode API available at port ${openCodePort}`);
+  
+  // Start Hono server with Bun.serve()
+  const server = Bun.serve({
+    port: options.port,
+    fetch: app.fetch,
+  });
+  
+  console.log(`[openchamber] Server running at http://localhost:${server.port}`);
+  
+  if (options.attachSignals !== false) {
+    const shutdown = () => {
+      console.log('\n[openchamber] Shutting down...');
+      server.stop();
+      if (options.exitOnShutdown !== false) {
+        process.exit(0);
+      }
+    };
+    
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+  }
+}
+
 // Run if executed directly
 if (import.meta.main) {
-  main().catch(console.error)
+  const { port, workdir } = parseArgs();
+  startWebUiServer({ port, workdir, attachSignals: true, exitOnShutdown: true })
+    .catch(console.error);
 }
 
 export { app }

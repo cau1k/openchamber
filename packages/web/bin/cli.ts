@@ -2,6 +2,7 @@
 
 import path from 'path';
 import os from 'os';
+import { startWebUiServer } from '../server/src/index';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
@@ -437,14 +438,13 @@ const commands = {
         process.exit(1);
       }
     } else {
-      // Foreground mode: import and run server directly
+      // Foreground mode: run server directly
       process.env.OPENCODE_BINARY = opencodeBinary;
       if (typeof options.uiPassword === 'string') {
         process.env.OPENCHAMBER_UI_PASSWORD = options.uiPassword;
       }
       await writeInstanceOptions(instanceFilePath, options);
 
-      const { startWebUiServer } = await import(serverPath);
       await startWebUiServer({
         port: options.port,
         attachSignals: true,
