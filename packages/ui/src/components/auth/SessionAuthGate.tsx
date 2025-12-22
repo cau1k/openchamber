@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { isDesktopRuntime, isVSCodeRuntime } from '@/lib/desktop';
 import { syncDesktopSettings, initializeAppearancePreferences } from '@/lib/persistence';
 import { applyPersistedDirectoryPreferences } from '@/lib/directoryPersistence';
+import { homeDirectoryReady } from '@/stores/useDirectoryStore';
 
 const STATUS_CHECK_ENDPOINT = '/auth/session';
 
@@ -149,6 +150,7 @@ export const SessionAuthGate: React.FC<SessionAuthGateProps> = ({ children }) =>
       void (async () => {
         await syncDesktopSettings();
         await initializeAppearancePreferences();
+        await homeDirectoryReady;
         await applyPersistedDirectoryPreferences();
       })();
     }

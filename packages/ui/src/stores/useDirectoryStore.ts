@@ -457,8 +457,9 @@ export const useDirectoryStore = create<DirectoryStore>()(
   )
 );
 
-if (typeof window !== 'undefined') {
-  initializeHomeDirectory().then((home) => {
-    useDirectoryStore.getState().synchronizeHomeDirectory(home);
-  });
-}
+export const homeDirectoryReady = typeof window !== 'undefined'
+  ? initializeHomeDirectory().then((home) => {
+      useDirectoryStore.getState().synchronizeHomeDirectory(home);
+      return home;
+    })
+  : Promise.resolve(getHomeDirectory());
