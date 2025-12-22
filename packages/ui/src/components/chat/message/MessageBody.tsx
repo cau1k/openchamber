@@ -16,7 +16,7 @@ import { isEmptyTextPart, extractTextContent } from './partUtils';
 import { FadeInOnReveal } from './FadeInOnReveal';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { RiCheckLine, RiFileCopyLine, RiChatNewLine, RiArrowGoBackLine } from '@remixicon/react';
+import { RiCheckLine, RiFileCopyLine, RiGitBranchLine, RiArrowGoBackLine } from '@remixicon/react';
 import type { ContentChangeReason } from '@/hooks/useChatScrollManager';
 
 import { SimpleMarkdownRenderer } from '../MarkdownRenderer';
@@ -1107,7 +1107,7 @@ const AssistantMessageBody: React.FC<Omit<MessageBodyProps, 'isUser'>> = ({
                          onPointerDown={(event) => event.stopPropagation()}
                          onClick={handleForkClick}
                      >
-                         <RiChatNewLine className="h-4 w-4" />
+                          <RiGitBranchLine className="h-4 w-4" />
                      </Button>
                  </TooltipTrigger>
                  <TooltipContent sideOffset={6}>Start new session from this answer</TooltipContent>
