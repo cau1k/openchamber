@@ -381,6 +381,14 @@ export function createGitRoutes() {
       return c.json({ error: 'directory required' }, 400)
     }
 
+    // Check if directory is a git repo first
+    const gitDir = join(directory, '.git')
+    const isGitRepo = await Bun.file(gitDir).exists()
+    if (!isGitRepo) {
+      // Not a git repo - return empty worktrees (graceful degradation)
+      return c.json([])
+    }
+
     try {
       const output = await $`git -C ${directory} worktree list --porcelain`.text()
       const worktrees: Array<{ worktree: string; head?: string; branch?: string }> = []

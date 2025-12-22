@@ -64,7 +64,7 @@ export function createFileRoutes() {
     
     try {
       const glob = new Bun.Glob('*')
-      const entries: Array<{ name: string; isDirectory: boolean; size: number }> = []
+      const entries: Array<{ name: string; path: string; isDirectory: boolean; size: number }> = []
       
       for await (const entry of glob.scan({ cwd: dirPath, onlyFiles: false })) {
         const fullPath = join(dirPath, entry)
@@ -84,6 +84,7 @@ export function createFileRoutes() {
 
         entries.push({
           name: entry,
+          path: fullPath,  // client expects full path
           isDirectory,
           size: isDirectory ? 0 : file.size,
         })

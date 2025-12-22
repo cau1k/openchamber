@@ -22,6 +22,9 @@ import { createOpenchamberRoutes } from './routes/openchamber'
 import { getOpenCodePort, ensureOpenCodeRunning } from './lib/opencode'
 import { getDataDir, getDistDir } from './lib/paths'
 
+// Track active server for graceful HMR restart
+let activeServer: ReturnType<typeof Bun.serve> | null = null
+
 const app = new Hono()
 
 // CORS for development
@@ -138,18 +141,28 @@ export async function startWebUiServer(options: ServerOptions): Promise<void> {
   const openCodePort = await ensureOpenCodeRunning(workdir);
   console.log(`[openchamber] OpenCode API available at port ${openCodePort}`);
   
+  // Gracefully stop existing server on HMR
+  if (activeServer) {
+    console.log('[openchamber] Stopping previous server instance...');
+    activeServer.stop(true);
+    activeServer = null;
+  }
+  
   // Start Hono server with Bun.serve()
-  const server = Bun.serve({
+  activeServer = Bun.serve({
     port: options.port,
     fetch: app.fetch,
+    reusePort: true,
   });
+  const server = activeServer;
   
   console.log(`[openchamber] Server running at http://localhost:${server.port}`);
   
   if (options.attachSignals !== false) {
     const shutdown = () => {
       console.log('\n[openchamber] Shutting down...');
-      server.stop();
+      server.stop(true);
+      activeServer = null;
       if (options.exitOnShutdown !== false) {
         process.exit(0);
       }
