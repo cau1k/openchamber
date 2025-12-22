@@ -6,6 +6,17 @@
 import { Hono } from 'hono'
 import { $ } from 'bun'
 import { join } from 'path'
+import { stat } from 'fs/promises'
+
+// Helper to check if path exists (works for files AND directories)
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await stat(path)
+    return true
+  } catch {
+    return false
+  }
+}
 
 export function createGitRoutes() {
   const git = new Hono()
@@ -18,7 +29,19 @@ export function createGitRoutes() {
     }
 
     const gitDir = join(directory, '.git')
-    const exists = await Bun.file(gitDir).exists()
+    const exists = await pathExists(gitDir)
+    return c.json({ isRepo: exists })
+  })
+
+  // Alias for is-repo check - some clients call /check
+  git.get('/check', async (c) => {
+    const directory = c.req.query('directory')
+    if (!directory) {
+      return c.json({ error: 'directory required' }, 400)
+    }
+
+    const gitDir = join(directory, '.git')
+    const exists = await pathExists(gitDir)
     return c.json({ isRepo: exists })
   })
 
@@ -27,6 +50,23 @@ export function createGitRoutes() {
     const directory = c.req.query('directory')
     if (!directory) {
       return c.json({ error: 'directory required' }, 400)
+    }
+
+    // Check if directory is a git repo first
+    const gitDir = join(directory, '.git')
+    const isGitRepo = await pathExists(gitDir)
+    if (!isGitRepo) {
+      // Not a git repo - return empty status (graceful degradation)
+      return c.json({
+        current: null,
+        tracking: null,
+        ahead: 0,
+        behind: 0,
+        files: [],
+        isClean: true,
+        diffStats: {},
+        isRepo: false,
+      })
     }
 
     try {
