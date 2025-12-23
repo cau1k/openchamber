@@ -133,6 +133,8 @@ export interface ServerOptions {
   attachSignals?: boolean;
   exitOnShutdown?: boolean;
   uiPassword?: string | null;
+  onReady?: () => void | Promise<void>;
+  onShutdown?: () => void | Promise<void>;
 }
 
 export async function startWebUiServer(options: ServerOptions): Promise<void> {
@@ -168,9 +170,17 @@ export async function startWebUiServer(options: ServerOptions): Promise<void> {
   
   console.log(`[openchamber] Server running at http://localhost:${server.port}`);
   
+  // Call onReady callback after server is listening
+  if (options.onReady) {
+    await options.onReady();
+  }
+  
   if (options.attachSignals !== false) {
     const shutdown = async () => {
       console.log('\n[openchamber] Shutting down...');
+      if (options.onShutdown) {
+        await options.onShutdown();
+      }
       await stopOpenCode();
       server.stop(true);
       activeServer = null;

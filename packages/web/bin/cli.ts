@@ -12,6 +12,7 @@ interface CLIOptions {
   port: number;
   daemon: boolean;
   uiPassword?: string;
+  tailscale: boolean;
 }
 
 interface ParsedArgs {
@@ -29,7 +30,7 @@ async function getPackageVersion(): Promise<string> {
 async function parseArgs(): Promise<ParsedArgs> {
   const args = Bun.argv.slice(2);
   const envPassword = process.env.OPENCHAMBER_UI_PASSWORD;
-  const options: CLIOptions = { port: DEFAULT_PORT, daemon: false, uiPassword: envPassword };
+  const options: CLIOptions = { port: DEFAULT_PORT, daemon: false, uiPassword: envPassword, tailscale: false };
   let command = 'serve';
 
   const consumeValue = (currentIndex: number, inlineValue?: string): { value?: string; nextIndex: number } => {
@@ -89,6 +90,10 @@ async function parseArgs(): Promise<ParsedArgs> {
           console.log(version);
           process.exit(0);
         }
+        case 'tailscale':
+        case 'T':
+          options.tailscale = true;
+          break;
       }
     } else {
       command = arg;
@@ -115,6 +120,7 @@ OPTIONS:
   -p, --port     Web server port (default: ${DEFAULT_PORT})
   --ui-password  Protect browser UI with single password
   -d, --daemon   Run in background (serve command)
+  -T, --tailscale  Forward port via tailscale serve
   -h, --help     Show help
   -v, --version  Show version
 
@@ -323,6 +329,47 @@ function isProcessRunning(pid: number): boolean {
   }
 }
 
+async function startTailscaleServe(port: number): Promise<boolean> {
+  try {
+    const which = await Bun.$`which tailscale`.quiet();
+    if (which.exitCode !== 0) {
+      console.warn('Warning: tailscale not found in PATH, skipping tailscale serve');
+      return false;
+    }
+
+    // Start tailscale serve in background mode
+    const result = await Bun.$`tailscale serve --bg ${port}`.quiet();
+    if (result.exitCode === 0) {
+      console.log(`Tailscale serve started on port ${port}`);
+      // Get the tailscale hostname
+      const status = await Bun.$`tailscale status --json`.quiet();
+      if (status.exitCode === 0) {
+        const statusJson = JSON.parse(status.stdout.toString());
+        const hostname = statusJson.Self?.DNSName?.replace(/\.$/, '');
+        if (hostname) {
+          console.log(`Tailscale URL: https://${hostname}`);
+        }
+      }
+      return true;
+    } else {
+      console.warn(`Warning: tailscale serve failed: ${result.stderr.toString()}`);
+      return false;
+    }
+  } catch (error) {
+    console.warn(`Warning: tailscale serve error: ${error instanceof Error ? error.message : error}`);
+    return false;
+  }
+}
+
+async function stopTailscaleServe(): Promise<void> {
+  try {
+    await Bun.$`tailscale serve reset`.quiet();
+    console.log('Tailscale serve stopped');
+  } catch {
+    // Ignore errors on cleanup
+  }
+}
+
 interface RunningInstance {
   port: number;
   pid: number;
@@ -433,6 +480,10 @@ const commands = {
         console.log(`OpenChamber started in daemon mode on port ${options.port}`);
         console.log(`PID: ${child.pid}`);
         console.log(`Visit: http://localhost:${options.port}`);
+        
+        if (options.tailscale) {
+          await startTailscaleServe(options.port);
+        }
       } else {
         console.error('Failed to start server in daemon mode');
         process.exit(1);
@@ -450,6 +501,12 @@ const commands = {
         attachSignals: true,
         exitOnShutdown: true,
         uiPassword: typeof options.uiPassword === 'string' ? options.uiPassword : null,
+        onReady: options.tailscale ? async () => {
+          await startTailscaleServe(options.port);
+        } : undefined,
+        onShutdown: options.tailscale ? async () => {
+          await stopTailscaleServe();
+        } : undefined,
       });
     }
   },
@@ -516,6 +573,7 @@ const commands = {
         port: instance.storedOptions?.port ?? instance.port,
         daemon: instance.storedOptions?.daemon ?? false,
         uiPassword: instance.storedOptions?.uiPassword,
+        tailscale: false,
         // CLI-provided options override stored ones
         ...(portWasSpecified ? { port: options.port } : {}),
         ...(Bun.argv.includes('--daemon') || Bun.argv.includes('-d') ? { daemon: options.daemon } : {}),
