@@ -8,6 +8,7 @@
 import { Hono } from 'hono'
 import { getDataDir, resolveDirectory } from '../lib/paths'
 import { getOpenCodeWorkingDirectory, restartOpenCode } from '../lib/opencode'
+import { isTailscaleEnabled, getActiveTailscalePorts, getTailscaleHostname } from '../lib/tailscale'
 import path from 'path'
 
 const MODELS_DEV_URL = 'https://models.dev/api.json'
@@ -149,6 +150,23 @@ export function createOpenchamberRoutes() {
   // Get current working directory
   router.get('/directory', (c) => {
     return c.json({ path: getOpenCodeWorkingDirectory() })
+  })
+
+  // Tailscale status endpoint
+  router.get('/tailscale', (c) => {
+    const enabled = isTailscaleEnabled()
+    const ports = getActiveTailscalePorts()
+    const hostname = getTailscaleHostname()
+    
+    return c.json({
+      enabled,
+      hostname,
+      ports,
+      urls: hostname ? ports.map(port => ({
+        port,
+        url: `https://${hostname}:${port}`
+      })) : []
+    })
   })
 
   return router

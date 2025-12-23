@@ -4,9 +4,16 @@ import {
   DialogContent,
 } from '@/components/ui/dialog';
 import { OpenChamberLogo } from '@/components/ui/OpenChamberLogo';
-import { RiGithubFill, RiTwitterXFill } from '@remixicon/react';
+import { RiExternalLinkLine, RiSignalTowerFill } from '@remixicon/react';
 
 declare const __APP_VERSION__: string | undefined;
+
+interface TailscaleStatus {
+  enabled: boolean;
+  hostname: string | null;
+  ports: number[];
+  urls: { port: number; url: string }[];
+}
 
 interface AboutDialogProps {
   open: boolean;
@@ -18,6 +25,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
   onOpenChange,
 }) => {
   const [version, setVersion] = React.useState<string | null>(null);
+  const [tailscale, setTailscale] = React.useState<TailscaleStatus | null>(null);
 
   React.useEffect(() => {
     if (!open) return;
@@ -37,6 +45,12 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
       fetchVersion();
     } else {
       setVersion(typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : null);
+      
+      // Fetch tailscale status (web only)
+      fetch('/openchamber/tailscale')
+        .then(res => res.ok ? res.json() : null)
+        .then(data => setTailscale(data))
+        .catch(() => setTailscale(null));
     }
   }, [open]);
 
@@ -57,43 +71,30 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
             )}
           </div>
 
-          <p className="typography-meta text-muted-foreground">
-            A fan-made interface for{' '}
-            <a
-              href="https://opencode.ai/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-foreground transition-colors"
-            >
-              OpenCode
-            </a>{' '}
-            agent
-          </p>
-
-          <div className="flex items-center gap-4 pt-2">
-            <a
-              href="https://github.com/btriapitsyn/openchamber"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 typography-meta text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <RiGithubFill className="h-4 w-4" />
-              <span>GitHub</span>
-            </a>
-            <a
-              href="https://x.com/btriapitsyn"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 typography-meta text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <RiTwitterXFill className="h-4 w-4" />
-              <span>@btriapitsyn</span>
-            </a>
-          </div>
-
-          <p className="typography-meta text-muted-foreground/60 pt-2">
-            Made with love to comunity
-          </p>
+          {tailscale?.enabled && tailscale.urls.length > 0 && (
+            <div className="w-full pt-2 border-t border-border">
+              <div className="flex items-center justify-center gap-1.5 mb-3">
+                <RiSignalTowerFill className="h-4 w-4 text-emerald-500" />
+                <span className="typography-meta font-medium">Tailscale Serves</span>
+              </div>
+              <div className="space-y-2">
+                {tailscale.urls.map(({ port, url }) => (
+                  <a
+                    key={port}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between px-3 py-2 rounded-md bg-muted/50 hover:bg-muted transition-colors group"
+                  >
+                    <span className="typography-meta text-muted-foreground truncate">
+                      {url.replace('https://', '')}
+                    </span>
+                    <RiExternalLinkLine className="h-3.5 w-3.5 text-muted-foreground/60 group-hover:text-foreground transition-colors flex-shrink-0 ml-2" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
