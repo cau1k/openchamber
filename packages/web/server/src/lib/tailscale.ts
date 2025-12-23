@@ -85,13 +85,14 @@ export async function serveTailscalePort(port: number): Promise<boolean> {
   }
 
   try {
-    const result = await Bun.$`tailscale serve --bg ${port}`.quiet()
+    // Use --http to expose as HTTP (not HTTPS) since we don't have SSL certs
+    const result = await Bun.$`tailscale serve --bg --http ${port} http://127.0.0.1:${port}`.quiet()
     if (result.exitCode === 0) {
       state.activePorts.add(port)
       const hostname = await detectHostname()
       console.log(`[tailscale] Serving port ${port}`)
       if (hostname) {
-        console.log(`[tailscale] URL: https://${hostname}:${port}`)
+        console.log(`[tailscale] URL: http://${hostname}:${port}`)
       }
       return true
     } else {

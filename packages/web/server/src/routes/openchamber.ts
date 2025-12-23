@@ -164,7 +164,7 @@ export function createOpenchamberRoutes() {
       ports,
       urls: hostname ? ports.map(port => ({
         port,
-        url: `https://${hostname}:${port}`
+        url: `http://${hostname}:${port}`
       })) : []
     })
   })
