@@ -4,6 +4,7 @@
  */
 
 import { homedir } from 'os'
+import { serveTailscalePort, stopTailscalePort } from './tailscale'
 
 // API prefix candidates to probe
 const API_PREFIX_CANDIDATES = ['', '/api']
@@ -342,6 +343,9 @@ export async function ensureOpenCodeRunning(workdir: string): Promise<number> {
   // Start new OpenCode instance
   const port = await startProcess(workdir)
   
+  // Forward port via tailscale if enabled
+  await serveTailscalePort(port)
+  
   // Wait for it to be ready
   try {
     await waitForReady()
@@ -357,6 +361,12 @@ export async function ensureOpenCodeRunning(workdir: string): Promise<number> {
 export async function stopOpenCode(): Promise<void> {
   if (state.proc) {
     console.log(`[opencode] Stopping process...`)
+    
+    // Stop tailscale serve for this port
+    if (state.port) {
+      await stopTailscalePort(state.port)
+    }
+    
     state.proc.kill()
     state.proc = null
     state.port = null
@@ -391,7 +401,7 @@ export async function restartOpenCode(newWorkdir: string): Promise<number> {
       }
     }
     
-    // Stop existing process
+    // Stop existing process (this also stops tailscale for old port)
     await stopOpenCode()
     
     // Reset detection state
@@ -403,6 +413,9 @@ export async function restartOpenCode(newWorkdir: string): Promise<number> {
     
     // Start with new directory
     const port = await startProcess(newWorkdir)
+    
+    // Forward new port via tailscale if enabled
+    await serveTailscalePort(port)
     
     // Wait for it to be ready
     await waitForReady()

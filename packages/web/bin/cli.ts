@@ -3,6 +3,7 @@
 import path from 'path';
 import os from 'os';
 import { startWebUiServer } from '../server/src/index';
+import { enableTailscale, serveTailscalePort, stopAllTailscale } from '../server/src/lib/tailscale';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
@@ -330,44 +331,11 @@ function isProcessRunning(pid: number): boolean {
 }
 
 async function startTailscaleServe(port: number): Promise<boolean> {
-  try {
-    const which = await Bun.$`which tailscale`.quiet();
-    if (which.exitCode !== 0) {
-      console.warn('Warning: tailscale not found in PATH, skipping tailscale serve');
-      return false;
-    }
-
-    // Start tailscale serve in background mode
-    const result = await Bun.$`tailscale serve --bg ${port}`.quiet();
-    if (result.exitCode === 0) {
-      console.log(`Tailscale serve started on port ${port}`);
-      // Get the tailscale hostname
-      const status = await Bun.$`tailscale status --json`.quiet();
-      if (status.exitCode === 0) {
-        const statusJson = JSON.parse(status.stdout.toString());
-        const hostname = statusJson.Self?.DNSName?.replace(/\.$/, '');
-        if (hostname) {
-          console.log(`Tailscale URL: https://${hostname}`);
-        }
-      }
-      return true;
-    } else {
-      console.warn(`Warning: tailscale serve failed: ${result.stderr.toString()}`);
-      return false;
-    }
-  } catch (error) {
-    console.warn(`Warning: tailscale serve error: ${error instanceof Error ? error.message : error}`);
-    return false;
-  }
+  return serveTailscalePort(port);
 }
 
 async function stopTailscaleServe(): Promise<void> {
-  try {
-    await Bun.$`tailscale serve reset`.quiet();
-    console.log('Tailscale serve stopped');
-  } catch {
-    // Ignore errors on cleanup
-  }
+  await stopAllTailscale();
 }
 
 interface RunningInstance {
@@ -495,6 +463,11 @@ const commands = {
         process.env.OPENCHAMBER_UI_PASSWORD = options.uiPassword;
       }
       await writeInstanceOptions(instanceFilePath, options);
+
+      // Enable tailscale globally so opencode port changes are auto-forwarded
+      if (options.tailscale) {
+        enableTailscale();
+      }
 
       await startWebUiServer({
         port: options.port,
