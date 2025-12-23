@@ -10,7 +10,10 @@ const packageJson = JSON.parse(readFileSync(path.resolve(__dirname, 'package.jso
 
 export default defineConfig({
   root: path.resolve(__dirname, '.'),
-  plugins: [react(), themeStoragePlugin()],
+  plugins: [
+    react(),
+    themeStoragePlugin(),
+  ],
   resolve: {
     alias: {
       '@desktop': path.resolve(__dirname, './src'),

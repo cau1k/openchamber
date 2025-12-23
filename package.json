@@ -46,6 +46,7 @@
     "@heroui/system": "^2.4.23",
     "@heroui/theme": "^2.4.23",
     "@ibm/plex": "^6.4.1",
+    "@monaco-editor/react": "^4.7.0",
     "@opencode-ai/sdk": "^1.0.167",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.15",

@@ -5,7 +5,7 @@
   "type": "module",
   "main": "./server/src/index.ts",
   "bin": {
-    "openchamber": "./bin/cli.ts"
+    "openchamber": "./bin/openchamber"
   },
   "publishConfig": {
     "access": "public"

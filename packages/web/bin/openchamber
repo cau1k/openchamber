@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Wrapper to execute the TypeScript CLI with Bun
+exec bun "$(dirname "$0")/cli.ts" "$@"
