@@ -47,7 +47,7 @@ export const AboutDialog: React.FC<AboutDialogProps> = ({
       setVersion(typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : null);
       
       // Fetch tailscale status (web only)
-      fetch('/openchamber/tailscale')
+      fetch('/api/openchamber/tailscale')
         .then(res => res.ok ? res.json() : null)
         .then(data => setTailscale(data))
         .catch(() => setTailscale(null));
